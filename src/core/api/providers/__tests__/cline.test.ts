@@ -64,6 +64,52 @@ describe("ClineHandler", () => {
 		])
 	})
 
+	it("should read cache write tokens from cache_creation_input_tokens", async () => {
+		const handler = createHandler({})
+		const fakeClient = {
+			chat: {
+				completions: {
+					create: sinon.stub().resolves(
+						createAsyncIterable([
+							{
+								choices: [{}],
+								usage: {
+									prompt_tokens: 200,
+									completion_tokens: 11,
+									cache_creation_input_tokens: 40,
+									prompt_tokens_details: {
+										cached_tokens: 150,
+									},
+								},
+							},
+						]),
+					),
+				},
+			},
+		}
+		sinon.stub(handler as any, "ensureClient").resolves(fakeClient as any)
+		sinon.stub(handler, "getModel").returns({
+			id: "anthropic/claude-sonnet-4.6",
+			info: openRouterDefaultModelInfo,
+		})
+
+		const chunks: any[] = []
+		for await (const chunk of handler.createMessage("system", [{ role: "user", content: "hi" }])) {
+			chunks.push(chunk)
+		}
+
+		chunks.should.deepEqual([
+			{
+				type: "usage",
+				cacheWriteTokens: 40,
+				cacheReadTokens: 150,
+				inputTokens: 10,
+				outputTokens: 11,
+				totalCost: 0,
+			},
+		])
+	})
+
 	it("should forward enableParallelToolCalling to OpenRouter payload", async () => {
 		const handler = createHandler({ enableParallelToolCalling: true })
 		const createStub = sinon.stub().resolves(createAsyncIterable([]))
