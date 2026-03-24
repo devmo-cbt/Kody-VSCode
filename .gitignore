@@ -56,3 +56,5 @@ evals/smoke-tests/results/
 secrets.json
 tui-traces
 tests/**/cache
+*.png
+*.code-workspace
