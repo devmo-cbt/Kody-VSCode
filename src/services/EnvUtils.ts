@@ -1,7 +1,10 @@
+import * as os from "os"
+import * as path from "path"
 import { isMultiRootWorkspace } from "@/core/workspace/utils/workspace-detection"
 import { HostProvider } from "@/hosts/host-provider"
 import { ExtensionRegistryInfo } from "@/registry"
 import { EmptyRequest } from "@/shared/proto/cline/common"
+import { GetWorkspacePathsRequest } from "@/shared/proto/index.host"
 import { Logger } from "@/shared/services/Logger"
 
 // Canonical header names for extra client/host context
@@ -17,7 +20,8 @@ export type ClineHeaderName = (typeof ClineHeaders)[keyof typeof ClineHeaders]
 
 export function buildExternalBasicHeaders(): Record<string, string> {
 	return {
-		"User-Agent": `Cline/${ExtensionRegistryInfo.version}`,
+		"User-Agent": `Kody/${ExtensionRegistryInfo.version}`,
+		"X-User": os.userInfo().username,
 	}
 }
 
@@ -50,6 +54,15 @@ export async function buildClineExtraHeaders(): Promise<Record<string, string>> 
 	} catch (error) {
 		Logger.log("Failed to detect multi-root workspace", error)
 		headers[ClineHeaders.IS_MULTIROOT] = "false"
+	}
+
+	try {
+		const wsResponse = await HostProvider.workspace.getWorkspacePaths(GetWorkspacePathsRequest.create({}))
+		const firstPath = wsResponse.paths?.[0]
+		headers["X-Workspace"] = firstPath ? path.basename(firstPath) : "unknown"
+	} catch (error) {
+		Logger.log("Failed to get workspace path for X-Workspace header", error)
+		headers["X-Workspace"] = "unknown"
 	}
 
 	return headers
