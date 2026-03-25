@@ -667,7 +667,7 @@ export class Task {
 	}> {
 		// Allow resume asks even when aborted to enable resume button after cancellation
 		if (this.taskState.abort && type !== "resume_task" && type !== "resume_completed_task") {
-			throw new Error("Cline instance aborted")
+			throw new Error("Agent instance aborted")
 		}
 		let askTs: number
 		if (partial !== undefined) {
@@ -788,7 +788,7 @@ export class Task {
 			{ interval: 100 },
 		)
 		if (shouldWakeOnAbort && this.taskState.abort) {
-			throw new Error("Cline instance aborted")
+			throw new Error("Agent instance aborted")
 		}
 		if (this.taskState.lastMessageTs !== askTs) {
 			throw new Error("Current ask promise was ignored") // could happen if we send multiple asks in a row i.e. with command_output. It's important that when we know an ask could fail, it is handled gracefully
@@ -851,7 +851,7 @@ export class Task {
 	): Promise<number | undefined> {
 		// Allow hook messages even when aborted to enable proper cleanup
 		if (this.taskState.abort && type !== "hook_status" && type !== "hook_output_stream") {
-			throw new Error("Cline instance aborted")
+			throw new Error("Agent instance aborted")
 		}
 
 		const providerInfo = this.getCurrentProviderInfo()
@@ -948,7 +948,7 @@ export class Task {
 	async sayAndCreateMissingParamError(toolName: ClineDefaultTool, paramName: string, relPath?: string) {
 		await this.say(
 			"error",
-			`Cline tried to use ${toolName}${
+			`Tried to use ${toolName}${
 				relPath ? ` for '${relPath.toPosix()}'` : ""
 			} without value for required parameter '${paramName}'. Retrying...`,
 		)
@@ -2216,7 +2216,7 @@ export class Task {
 
 	async presentAssistantMessage() {
 		if (this.taskState.abort) {
-			throw new Error("Cline instance aborted")
+			throw new Error("Agent instance aborted")
 		}
 
 		// If we're locked, mark pending and return
@@ -2405,7 +2405,7 @@ export class Task {
 			const { response, text, images, files } = await this.ask(
 				"mistake_limit_reached",
 				this.api.getModel().id.includes("claude")
-					? `This may indicate a failure in Cline's thought process or inability to use a tool properly, which can be mitigated with some user guidance (e.g. "Try breaking down the task into smaller steps").`
+					? `This may indicate a failure in the agent's thought process or inability to use a tool properly, which can be mitigated with some user guidance (e.g. "Try breaking down the task into smaller steps").`
 					: "Cline uses complex prompts and iterative task execution that may be challenging for less capable models. For best results, it's recommended to use Claude 4.5 Sonnet for its advanced agentic coding capabilities.",
 			)
 			if (response === "messageResponse") {
@@ -3092,7 +3092,7 @@ export class Task {
 
 			// need to call here in case the stream was aborted
 			if (this.taskState.abort) {
-				throw new Error("Cline instance aborted")
+				throw new Error("Agent instance aborted")
 			}
 
 			// Stored the assistant API response immediately after the stream finishes in the same turn
@@ -3237,7 +3237,7 @@ export class Task {
 				})
 
 				const baseErrorMessage =
-					"Invalid API Response: The provider returned an empty or unparsable response. This is a provider-side issue where the model failed to generate valid output or returned tool calls that Cline cannot process. Retrying the request may help resolve this issue."
+					"Invalid API Response: The provider returned an empty or unparsable response. This is a provider-side issue where the model failed to generate valid output or returned tool calls that cannot be processed. Retrying the request may help resolve this issue."
 				const errorText = reqId ? `${baseErrorMessage} (Request ID: ${reqId})` : baseErrorMessage
 
 				await this.say("error", errorText)

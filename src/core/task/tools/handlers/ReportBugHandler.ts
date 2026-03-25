@@ -69,7 +69,7 @@ export class ReportBugHandler implements IToolHandler, IPartialBlockHandler {
 		if (config.autoApprovalSettings.enableNotifications) {
 			showSystemNotification({
 				subtitle: "Create a github issue...",
-				message: `Cline is suggesting to create a github issue with the title: ${title}`,
+				message: `Suggesting to create a github issue with the title: ${title}`,
 			})
 		}
 

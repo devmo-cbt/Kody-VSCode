@@ -51,11 +51,11 @@ export class WebFetchToolHandler implements IFullyManagedTool {
 			const currentMode = config.services.stateManager.getGlobalSettingsKey("mode")
 			const provider = (currentMode === "plan" ? apiConfig.planModeApiProvider : apiConfig.actModeApiProvider) as string
 
-			// Check if Cline web tools are enabled (both user setting and feature flag)
+			// Check if Web tools are enabled (both user setting and feature flag)
 			const clineWebToolsEnabled = config.services.stateManager.getGlobalSettingsKey("clineWebToolsEnabled")
 			const featureFlagEnabled = featureFlagsService.getWebtoolsEnabled()
 			if (provider !== "cline" || !clineWebToolsEnabled || !featureFlagEnabled) {
-				return formatResponse.toolError("Cline web tools are currently disabled.")
+				return formatResponse.toolError("Web tools are currently disabled.")
 			}
 
 			// Validate required parameters

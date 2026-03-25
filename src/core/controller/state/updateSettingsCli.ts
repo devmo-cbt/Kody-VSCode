@@ -150,7 +150,7 @@ export async function updateSettingsCli(controller: Controller, request: UpdateS
 				controller.stateManager.setGlobalState("useAutoCondense", useAutoCondense)
 			}
 
-			// Update Cline web tools setting (requires telemetry)
+			// Update Web tools setting (requires telemetry)
 			if (clineWebToolsEnabled !== undefined) {
 				if (controller.task) {
 					telemetryService.captureClineWebToolsToggle(controller.task.ulid, clineWebToolsEnabled)

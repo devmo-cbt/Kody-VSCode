@@ -34,7 +34,7 @@ export class CondenseHandler implements IToolHandler, IPartialBlockHandler {
 		if (config.autoApprovalSettings.enableNotifications) {
 			showSystemNotification({
 				subtitle: "Condensing conversation...",
-				message: `Cline is suggesting to condense your conversation with: ${context}`,
+				message: `Suggesting to condense your conversation with: ${context}`,
 			})
 		}
 

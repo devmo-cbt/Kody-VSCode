@@ -39,7 +39,7 @@ export class NewTaskHandler implements IToolHandler, IPartialBlockHandler {
 		if (config.autoApprovalSettings.enableNotifications) {
 			showSystemNotification({
 				subtitle: "Starting new task...",
-				message: `Cline is suggesting to start a new task with: ${context}`,
+				message: `Suggesting to start a new task with: ${context}`,
 			})
 		}
 
