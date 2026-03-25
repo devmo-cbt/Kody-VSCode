@@ -83,7 +83,7 @@ export class OpenAiHandler implements ApiHandler {
 					this.client = createOpenAIClient({
 						baseURL: this.options.openAiBaseUrl,
 						apiKey: this.options.openAiApiKey,
-						defaultHeaders: this.options.openAiHeaders,
+						defaultHeaders: { ...externalHeaders, ...this.options.openAiHeaders },
 					})
 				}
 			} catch (error: any) {
