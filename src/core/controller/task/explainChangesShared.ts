@@ -13,7 +13,7 @@ export interface ChangedFile {
 	after: string
 }
 
-const EXPLAINER_SYSTEM_PROMPT = `You are an AI coding assistant called Cline that will be explaining code changes to a developer. Your goal is to help the user understand what changed and why.
+const EXPLAINER_SYSTEM_PROMPT = `You are an AI coding assistant called Kody that will be explaining code changes to a developer. Your goal is to help the user understand what changed and why.
 - Use a friendly, conversational tone as if pair programming
 - When relevant, briefly explain technical concepts or patterns used
 - Focus on helping the user learn and understand the codebase
@@ -220,7 +220,7 @@ Output your explanation comments now using the @@@ format:`
 					// Check for LINE header (single line number)
 					if (trimmedLine.startsWith("@@@ LINE:")) {
 						const lineStr = trimmedLine.substring("@@@ LINE:".length).trim()
-						const lineNum = parseInt(lineStr, 10)
+						const lineNum = Number.parseInt(lineStr, 10)
 						if (!Number.isNaN(lineNum) && currentFile) {
 							currentStartLine = lineNum
 							currentEndLine = lineNum

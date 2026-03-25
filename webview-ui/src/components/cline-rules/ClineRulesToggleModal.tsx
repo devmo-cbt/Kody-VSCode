@@ -522,8 +522,8 @@ const ClineRulesToggleModal: React.FC = () => {
 								</p>
 							) : currentView === "skills" ? (
 								<p>
-									Skills are reusable instruction sets that Cline can activate on-demand. When a task matches a
-									skill's description, Cline uses the <span className="font-bold">use_skill</span> tool to load
+									Skills are reusable instruction sets that Kody can activate on-demand. When a task matches a
+									skill's description, Kody uses the <span className="font-bold">use_skill</span> tool to load
 									the full instructions.
 								</p>
 							) : (

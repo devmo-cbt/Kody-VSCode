@@ -17,7 +17,7 @@ export function getConfiguredProviders(
 	const configured: ApiProvider[] = []
 
 	if (!apiConfiguration) {
-		return ["cline"] // Cline is always available
+		return ["cline"] // Kody is always available
 	}
 
 	// Cline - always available (uses account-based auth)

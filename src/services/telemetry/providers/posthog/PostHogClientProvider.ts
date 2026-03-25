@@ -70,7 +70,7 @@ export class PostHogClientProvider {
 					const fileName = frames[j]?.filename
 					// The extension filename will include "saoudrizwan"
 					// The CLI filename will include "cline"
-					if (fileName?.includes("saoudrizwan") || fileName?.includes("cline")) {
+					if (fileName?.includes("crews-bank") || fileName?.includes("kody")) {
 						return event
 					}
 				}

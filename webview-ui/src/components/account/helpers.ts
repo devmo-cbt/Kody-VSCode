@@ -46,7 +46,7 @@ export function convertProtoUsageTransaction(protoTransaction: ProtoUsageTransac
 }
 
 /**
- * Converts an array of protobuf UsageTransactions to ClineAccount UsageTransactions
+ * Converts an array of protobuf UsageTransactions to KodyAccount UsageTransactions
  */
 export function convertProtoUsageTransactions(protoTransactions: ProtoUsageTransaction[]): ClineAccountUsageTransaction[] {
 	return protoTransactions.map(convertProtoUsageTransaction)

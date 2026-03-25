@@ -1,32 +1,14 @@
-import { SVGProps } from "react"
 import type { Environment } from "../../../src/shared/config-types"
-import { getEnvironmentColor } from "../utils/environmentColors"
 
-/**
- * ClineLogoVariable component renders the Cline logo with automatic theme adaptation
- * and environment-based color indicators.
- *
- * This component uses VS Code theme variables for the fill color, with environment-specific colors:
- * - Local: yellow/orange (development/experimental)
- * - Staging: blue (stable testing)
- * - Production: gray/white (default icon color)
- *
- * @param {SVGProps<SVGSVGElement> & { environment?: Environment }} props - Standard SVG props plus optional environment
- * @returns {JSX.Element} SVG Cline logo that adapts to VS Code themes and environment
- */
-const ClineLogoVariable = (props: SVGProps<SVGSVGElement> & { environment?: Environment }) => {
-	const { environment, ...svgProps } = props
+const JELLYFISH_PNG =
+	"data:image/png;base64,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"
 
-	// Determine fill color based on environment
-	const fillColor = environment ? getEnvironmentColor(environment) : "var(--vscode-icon-foreground)"
+interface KodyLogoProps {
+	className?: string
+	environment?: Environment
+}
 
-	return (
-		<svg fill="none" height="50" viewBox="0 0 47 50" width="47" xmlns="http://www.w3.org/2000/svg" {...svgProps}>
-			<path
-				d="M46.4075 28.1192L43.5011 22.3166V18.9747C43.5011 13.4354 39.0302 8.94931 33.5162 8.94931H28.5491C28.9086 8.21513 29.106 7.3898 29.106 6.5189C29.106 3.44039 26.6149 0.949219 23.5363 0.949219C20.4578 0.949219 17.9667 3.44039 17.9667 6.5189C17.9667 7.3898 18.1641 8.21513 18.5236 8.94931H13.5565C8.04249 8.94931 3.57155 13.4354 3.57155 18.9747V22.3166L0.604424 28.104C0.305687 28.6863 0.305687 29.3799 0.604424 29.9622L3.57155 35.6838V39.0256C3.57155 44.5649 8.04249 49.0511 13.5565 49.0511H33.5162C39.0302 49.0511 43.5011 44.5649 43.5011 39.0256V35.6838L46.4024 29.942C46.691 29.3698 46.691 28.6964 46.4075 28.1192ZM20.4983 32.8483C20.4983 35.3648 18.4578 37.4053 15.9413 37.4053C13.4248 37.4053 11.3843 35.3648 11.3843 32.8483V24.747C11.3843 22.2305 13.4248 20.19 15.9413 20.19C18.4578 20.19 20.4983 22.2305 20.4983 24.747V32.8483ZM35.182 32.8483C35.182 35.3648 33.1415 37.4053 30.625 37.4053C28.1085 37.4053 26.068 35.3648 26.068 32.8483V24.747C26.068 22.2305 28.1085 20.19 30.625 20.19C33.1415 20.19 35.182 22.2305 35.182 24.747V32.8483Z"
-				fill={fillColor}
-			/>
-		</svg>
-	)
+const ClineLogoVariable = ({ className }: KodyLogoProps) => {
+	return <img alt="Kody" className={className} src={JELLYFISH_PNG} style={{ filter: "invert(1)" }} />
 }
 export default ClineLogoVariable

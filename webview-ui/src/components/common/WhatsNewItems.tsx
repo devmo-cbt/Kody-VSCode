@@ -87,7 +87,7 @@ export const WhatsNewItems: React.FC<WhatsNewItemsProps> = ({
 						<InlineModelLink label="Try now" modelId="anthropic/claude-sonnet-4.6" pickerTab="recommended" />
 					</li>
 					<li className="mb-2">
-						<strong>Try Cline CLI 2.0:</strong> with /mcp functionality added in CLI{" "}
+						<strong>Try Kody CLI 2.0:</strong> with /mcp functionality added in CLI{" "}
 						<code style={inlineCodeStyle}>npm install -g cline</code>
 					</li>
 					<li className="mb-2">

@@ -77,7 +77,7 @@ export interface HostInfo {
 	 */
 	hostVersion?: string
 	/**
-	 * The version of Cline that the host client is running
+	 * The version of Kody that the host client is running
 	 */
 	extensionVersion: string
 }

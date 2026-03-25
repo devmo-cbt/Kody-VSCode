@@ -11,7 +11,7 @@ import type { FileMetadataEntry } from "./ContextTrackerTypes"
 // This class is responsible for tracking file operations that may result in stale context.
 // If a user modifies a file outside of Cline, the context may become stale and need to be updated.
 // We do not want Cline to reload the context every time a file is modified, so we use this class merely
-// to inform Cline that the change has occurred, and tell Cline to reload the file before making
+// to inform Kody that the change has occurred, and tell Cline to reload the file before making
 // any changes to it. This fixes an issue with diff editing, where Cline was unable to complete a diff edit.
 // a diff edit because the file was modified since Cline last read it.
 

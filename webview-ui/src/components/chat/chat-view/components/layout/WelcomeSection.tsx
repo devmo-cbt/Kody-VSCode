@@ -4,8 +4,6 @@ import type { Worktree } from "@shared/proto/cline/worktree"
 import { TrackWorktreeViewOpenedRequest } from "@shared/proto/cline/worktree"
 import { GitBranch } from "lucide-react"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import BannerCarousel from "@/components/common/BannerCarousel"
-import WhatsNewModal from "@/components/common/WhatsNewModal"
 import HistoryPreview from "@/components/history/HistoryPreview"
 import { useApiConfigurationHandlers } from "@/components/settings/utils/useApiConfigurationHandlers"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -277,18 +275,10 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 
 	return (
 		<div className="flex flex-col flex-1 w-full h-full p-0 m-0">
-			<WhatsNewModal
-				onBannerAction={handleBannerAction}
-				onClose={handleCloseWhatsNewModal}
-				open={showWhatsNewModal}
-				version={version}
-				welcomeBanners={welcomeBanners}
-			/>
 			<div className="overflow-y-auto flex flex-col pb-2.5">
 				<HomeHeader shouldShowQuickWins={shouldShowQuickWins} />
-				{!showWhatsNewModal && (
+				{
 					<>
-						<BannerCarousel banners={activeBanners} />
 						{!shouldShowQuickWins && taskHistory.length > 0 && <HistoryPreview showHistoryView={showHistoryView} />}
 						{/* Quick launch worktree button */}
 						{isGitRepo && worktreesEnabled?.featureFlag && worktreesEnabled?.user && (
@@ -330,14 +320,14 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 											</button>
 										</TooltipTrigger>
 										<TooltipContent side="bottom">
-											View and manage git worktrees. Great for running parallel Cline tasks.
+											View and manage git worktrees. Great for running parallel Kody tasks.
 										</TooltipContent>
 									</Tooltip>
 								)}
 							</div>
 						)}
 					</>
-				)}
+				}
 			</div>
 			<SuggestedTasks shouldShowQuickWins={shouldShowQuickWins} />
 

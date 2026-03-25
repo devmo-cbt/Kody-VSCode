@@ -176,10 +176,7 @@ export class AttemptCompletionHandler implements IToolHandler, IPartialBlockHand
 				await config.callbacks.say("command", command, undefined, undefined, false)
 			} else {
 				// Manual approval flow - need to ask for approval
-				showNotificationForApproval(
-					`Cline wants to execute a command: ${command}`,
-					config.autoApprovalSettings.enableNotifications,
-				)
+				showNotificationForApproval(`Execute command: ${command}`, config.autoApprovalSettings.enableNotifications)
 
 				const didApprove = await ToolResultUtils.askApprovalAndPushFeedback("command", command, config)
 				if (!didApprove) {

@@ -94,10 +94,7 @@ export class BrowserToolHandler implements IFullyManagedTool {
 					await config.callbacks.say("browser_action_launch", url, undefined, undefined, false)
 				} else {
 					// Show notification for approval if enabled
-					showNotificationForApproval(
-						`Cline wants to use a browser and launch ${url}`,
-						config.autoApprovalSettings.enableNotifications,
-					)
+					showNotificationForApproval(`Launch browser: ${url}`, config.autoApprovalSettings.enableNotifications)
 					await config.callbacks.removeLastPartialMessageIfExistsWithType("say", "browser_action_launch")
 					const didApprove = await ToolResultUtils.askApprovalAndPushFeedback("browser_action_launch", url, config)
 					if (!didApprove) {

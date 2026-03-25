@@ -102,10 +102,7 @@ export class WebSearchToolHandler implements IFullyManagedTool {
 				)
 			} else {
 				// Manual approval flow
-				showNotificationForApproval(
-					`Cline wants to search for: ${query}`,
-					config.autoApprovalSettings.enableNotifications,
-				)
+				showNotificationForApproval(`Search: ${query}`, config.autoApprovalSettings.enableNotifications)
 				await config.callbacks.removeLastPartialMessageIfExistsWithType("say", "tool")
 
 				const didApprove = await ToolResultUtils.askApprovalAndPushFeedback("tool", completeMessage, config)
@@ -121,18 +118,17 @@ export class WebSearchToolHandler implements IFullyManagedTool {
 						block.isNativeToolCall,
 					)
 					return formatResponse.toolDenied()
-				} else {
-					telemetryService.captureToolUsage(
-						config.ulid,
-						block.name,
-						config.api.getModel().id,
-						provider,
-						false,
-						true,
-						undefined,
-						block.isNativeToolCall,
-					)
 				}
+				telemetryService.captureToolUsage(
+					config.ulid,
+					block.name,
+					config.api.getModel().id,
+					provider,
+					false,
+					true,
+					undefined,
+					block.isNativeToolCall,
+				)
 			}
 
 			// Run PreToolUse hook after approval but before execution
