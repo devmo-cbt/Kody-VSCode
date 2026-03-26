@@ -2,7 +2,7 @@
 	"name": "kody-agent",
 	"displayName": "Kody",
 	"description": "CB&T DevAgent",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"icon": "assets/icons/icon.png",
 	"workspaces": [
 		".",

@@ -77,12 +77,8 @@ export function validateApiConfiguration(currentMode: Mode, apiConfiguration?: A
 				// Validation happens at runtime in the handler
 				break
 			case "openai":
-				if (
-					!apiConfiguration.openAiBaseUrl ||
-					(!apiConfiguration.openAiApiKey && !apiConfiguration.azureIdentity) ||
-					!openAiModelId
-				) {
-					return "You must provide a valid base URL, API key, and model ID."
+				if (!apiConfiguration.openAiBaseUrl || !openAiModelId) {
+					return "You must provide a valid base URL and model ID."
 				}
 				break
 			case "requesty":

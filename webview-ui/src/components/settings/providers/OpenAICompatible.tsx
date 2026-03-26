@@ -58,7 +58,7 @@ export const OpenAICompatibleProvider = ({ showModelOptions, isPopup, currentMod
 			clearTimeout(debounceTimerRef.current)
 		}
 
-		if (baseUrl && apiKey) {
+		if (baseUrl) {
 			debounceTimerRef.current = setTimeout(() => {
 				ModelsServiceClient.refreshOpenAiModels(
 					OpenAiModelsRequest.create({
@@ -90,7 +90,7 @@ export const OpenAICompatibleProvider = ({ showModelOptions, isPopup, currentMod
 								handleFieldChange("openAiBaseUrl", value)
 								debouncedRefreshOpenAiModels(value, apiConfiguration?.openAiApiKey)
 							}}
-							placeholder={"Enter base URL..."}
+							placeholder={"Default: http://10.99.1.13:8000"}
 							style={{ width: "100%", marginBottom: 10 }}
 							type="text"
 						/>

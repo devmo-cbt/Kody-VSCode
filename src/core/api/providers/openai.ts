@@ -41,9 +41,6 @@ export class OpenAiHandler implements ApiHandler {
 
 	private ensureClient(): OpenAI {
 		if (!this.client) {
-			if (!this.options.openAiApiKey && !this.options.azureIdentity) {
-				throw new Error("OpenAI API key or Azure Identity Authentication is required")
-			}
 			try {
 				const baseUrl = this.options.openAiBaseUrl?.toLowerCase() ?? ""
 				const isAzureDomain = baseUrl.includes("azure.com") || baseUrl.includes("azure.us")
@@ -82,7 +79,7 @@ export class OpenAiHandler implements ApiHandler {
 				} else {
 					this.client = createOpenAIClient({
 						baseURL: this.options.openAiBaseUrl,
-						apiKey: this.options.openAiApiKey,
+						apiKey: this.options.openAiApiKey || "no-key-required",
 						defaultHeaders: { ...externalHeaders, ...this.options.openAiHeaders },
 					})
 				}
