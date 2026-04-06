@@ -155,7 +155,6 @@ export const ChatRowContent = memo(
 			onRelinquishControl,
 			vscodeTerminalExecutionMode,
 			clineMessages,
-			showThinking,
 		} = useExtensionState()
 		const [seeNewChangesDisabled, setSeeNewChangesDisabled] = useState(false)
 		const [explainChangesDisabled, setExplainChangesDisabled] = useState(false)
@@ -891,7 +890,7 @@ export const ChatRowContent = memo(
 								<ThinkingRow
 									isExpanded={(isReasoningStreaming && hasReasoningText) || isExpanded}
 									isStreaming={isReasoningStreaming}
-									isVisible={showThinking !== false}
+									isVisible={true}
 									onToggle={isReasoningStreaming ? undefined : handleToggle}
 									reasoningContent={message.text}
 									showChevron={!isReasoningStreaming || hasReasoningText}

@@ -69,13 +69,6 @@ const agentFeatures: FeatureToggle[] = [
 		settingKey: "useAutoCondense",
 	},
 	{
-		id: "showThinking",
-		label: "Show Thinking",
-		description: "Display model reasoning and chain-of-thought in chat",
-		stateKey: "showThinking",
-		settingKey: "showThinking",
-	},
-	{
 		id: "focus-chain",
 		label: "Focus Chain",
 		description: "Maintain context focus across interactions",
