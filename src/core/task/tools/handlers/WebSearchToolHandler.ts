@@ -1,13 +1,13 @@
-import { ClineAsk, ClineSayTool } from "@shared/ExtensionMessage"
-import { ClineDefaultTool } from "@shared/tools"
+import { KodyAsk, KodySayTool } from "@shared/ExtensionMessage"
+import { KodyDefaultTool } from "@shared/tools"
 import axios from "axios"
-import { ClineEnv } from "@/config"
+import { KodyEnv } from "@/config"
 import { AuthService } from "@/services/auth/AuthService"
-import { buildClineExtraHeaders } from "@/services/EnvUtils"
+import { buildKodyExtraHeaders } from "@/services/EnvUtils"
 import { featureFlagsService } from "@/services/feature-flags"
 import { telemetryService } from "@/services/telemetry"
 import { parsePartialArrayString } from "@/shared/array"
-import { CLINE_ACCOUNT_AUTH_ERROR_MESSAGE } from "@/shared/ClineAccount"
+import { CLINE_ACCOUNT_AUTH_ERROR_MESSAGE } from "@/shared/KodyAccount"
 import { getAxiosSettings } from "@/shared/net"
 import { ToolUse } from "../../../assistant-message"
 import { formatResponse } from "../../../prompts/responses"
@@ -19,7 +19,7 @@ import type { StronglyTypedUIHelpers } from "../types/UIHelpers"
 import { ToolResultUtils } from "../utils/ToolResultUtils"
 
 export class WebSearchToolHandler implements IFullyManagedTool {
-	readonly name = ClineDefaultTool.WEB_SEARCH
+	readonly name = KodyDefaultTool.WEB_SEARCH
 
 	getDescription(block: ToolUse): string {
 		return `[${block.name} for '${block.params.query}']`
@@ -27,19 +27,19 @@ export class WebSearchToolHandler implements IFullyManagedTool {
 
 	async handlePartialBlock(block: ToolUse, uiHelpers: StronglyTypedUIHelpers): Promise<void> {
 		const query = block.params.query || ""
-		const sharedMessageProps: ClineSayTool = {
+		const sharedMessageProps: KodySayTool = {
 			tool: "webSearch",
 			path: uiHelpers.removeClosingTag(block, "query", query),
 			content: `Searching for: ${uiHelpers.removeClosingTag(block, "query", query)}`,
 			operationIsLocatedInWorkspace: false, // web_search is always external
-		} satisfies ClineSayTool
+		} satisfies KodySayTool
 
 		const partialMessage = JSON.stringify(sharedMessageProps)
 
 		// For partial blocks, we'll let the ToolExecutor handle auto-approval logic
 		// Just stream the UI update for now
 		await uiHelpers.removeLastPartialMessageIfExistsWithType("say", "tool")
-		await uiHelpers.ask("tool" as ClineAsk, partialMessage, block.partial).catch(() => {})
+		await uiHelpers.ask("tool" as KodyAsk, partialMessage, block.partial).catch(() => {})
 	}
 
 	async execute(config: TaskConfig, block: ToolUse): Promise<ToolResponse> {
@@ -54,9 +54,9 @@ export class WebSearchToolHandler implements IFullyManagedTool {
 			const provider = (currentMode === "plan" ? apiConfig.planModeApiProvider : apiConfig.actModeApiProvider) as string
 
 			// Check if Web tools are enabled (both user setting and feature flag)
-			const clineWebToolsEnabled = config.services.stateManager.getGlobalSettingsKey("clineWebToolsEnabled")
+			const kodyWebToolsEnabled = config.services.stateManager.getGlobalSettingsKey("kodyWebToolsEnabled")
 			const featureFlagEnabled = featureFlagsService.getWebtoolsEnabled()
-			if (provider !== "cline" || !clineWebToolsEnabled || !featureFlagEnabled) {
+			if (provider !== "kody" || !kodyWebToolsEnabled || !featureFlagEnabled) {
 				return formatResponse.toolError("Web tools are currently disabled.")
 			}
 
@@ -78,7 +78,7 @@ export class WebSearchToolHandler implements IFullyManagedTool {
 			}
 
 			// Create message for approval
-			const sharedMessageProps: ClineSayTool = {
+			const sharedMessageProps: KodySayTool = {
 				tool: "webSearch",
 				path: query,
 				content: `Searching for: ${query}`,
@@ -144,7 +144,7 @@ export class WebSearchToolHandler implements IFullyManagedTool {
 			}
 
 			// Execute the actual search
-			const baseUrl = ClineEnv.config().apiBaseUrl
+			const baseUrl = KodyEnv.config().apiBaseUrl
 			const authToken = await AuthService.getInstance().getAuthToken()
 
 			if (!authToken) {
@@ -172,7 +172,7 @@ export class WebSearchToolHandler implements IFullyManagedTool {
 					Authorization: `Bearer ${authToken}`,
 					"Content-Type": "application/json",
 					"X-Task-ID": config.ulid || "",
-					...(await buildClineExtraHeaders()),
+					...(await buildKodyExtraHeaders()),
 				},
 				timeout: 15000,
 				...getAxiosSettings(),

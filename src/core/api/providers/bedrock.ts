@@ -13,9 +13,9 @@ import { fromNodeProviderChain } from "@aws-sdk/credential-providers"
 import { type BedrockModelId, bedrockDefaultModelId, bedrockModels, CLAUDE_SONNET_1M_SUFFIX, type ModelInfo } from "@shared/api"
 import { calculateApiCostOpenAI, calculateApiCostQwen } from "@utils/cost"
 import { ExtensionRegistryInfo } from "@/registry"
-import type { ClineStorageMessage } from "@/shared/messages/content"
+import type { KodyStorageMessage } from "@/shared/messages/content"
 import { Logger } from "@/shared/services/Logger"
-import type { ClineTool } from "@/shared/tools"
+import type { KodyTool } from "@/shared/tools"
 import type { ApiHandler, CommonApiHandlerOptions } from "../"
 import { withRetry } from "../retry"
 import { convertToR1Format } from "../transform/r1-format"
@@ -153,7 +153,7 @@ export class AwsBedrockHandler implements ApiHandler {
 	}
 
 	@withRetry({ maxRetries: 4 })
-	async *createMessage(systemPrompt: string, messages: ClineStorageMessage[], tools?: ClineTool[]): ApiStream {
+	async *createMessage(systemPrompt: string, messages: KodyStorageMessage[], tools?: KodyTool[]): ApiStream {
 		// cross region inference requires prefixing the model id with the region
 		const rawModelId = await this.getModelId()
 
@@ -246,7 +246,7 @@ export class AwsBedrockHandler implements ApiHandler {
 		const providerOptions: ProviderChainOptions = {
 			clientConfig: {
 				// set the inner sts client userAgentAppId
-				userAgentAppId: `cline#${ExtensionRegistryInfo.version}`,
+				userAgentAppId: `kody#${ExtensionRegistryInfo.version}`,
 			},
 		}
 		const useProfile =
@@ -312,7 +312,7 @@ export class AwsBedrockHandler implements ApiHandler {
 		// AWS SDK uses a different architecture than fetch-based SDKs.
 		// To add proxy support, we need to provide a custom requestHandler.
 		return new BedrockRuntimeClient({
-			userAgentAppId: `cline#${ExtensionRegistryInfo.version}`,
+			userAgentAppId: `kody#${ExtensionRegistryInfo.version}`,
 			region: this.getRegion(),
 			...auth,
 			...(this.options.awsBedrockEndpoint && { endpoint: this.options.awsBedrockEndpoint }),
@@ -381,10 +381,10 @@ export class AwsBedrockHandler implements ApiHandler {
 	 */
 	private async *createDeepseekMessage(
 		systemPrompt: string,
-		messages: ClineStorageMessage[],
+		messages: KodyStorageMessage[],
 		modelId: string,
 		model: { id: string; info: ModelInfo },
-		_tools?: ClineTool[],
+		_tools?: KodyTool[],
 	): ApiStream {
 		// Get Bedrock client with proper credentials
 		const client = await this.getBedrockClient()
@@ -520,7 +520,7 @@ export class AwsBedrockHandler implements ApiHandler {
 	 * First uses convertToR1Format to merge consecutive messages with the same role,
 	 * then converts to the string format that DeepSeek R1 expects
 	 */
-	private formatDeepseekR1Prompt(systemPrompt: string, messages: ClineStorageMessage[]): string {
+	private formatDeepseekR1Prompt(systemPrompt: string, messages: KodyStorageMessage[]): string {
 		// First use convertToR1Format to merge consecutive messages with the same role
 		const r1Messages = convertToR1Format([{ role: "user", content: systemPrompt }, ...messages])
 
@@ -553,7 +553,7 @@ export class AwsBedrockHandler implements ApiHandler {
 	 * Estimates token count based on text length (approximate)
 	 * Note: This is a rough estimation, as the actual token count depends on the tokenizer
 	 */
-	private estimateInputTokens(systemPrompt: string, messages: ClineStorageMessage[]): number {
+	private estimateInputTokens(systemPrompt: string, messages: KodyStorageMessage[]): number {
 		// For Deepseek R1, we estimate the token count of the formatted prompt
 		// The formatted prompt includes special tokens and consistent formatting
 		const formattedPrompt = this.formatDeepseekR1Prompt(systemPrompt, messages)
@@ -569,16 +569,16 @@ export class AwsBedrockHandler implements ApiHandler {
 	}
 
 	/**
-	 * Converts Cline's tool definitions (Anthropic format with `input_schema`) to the
+	 * Converts Kody's tool definitions (Anthropic format with `input_schema`) to the
 	 * Bedrock Converse API `ToolConfiguration` shape. Returns `undefined` when no tools
 	 * are provided so callers can conditionally spread into the command params.
 	 */
-	private mapClineToolsToBedrockToolConfig(tools?: ClineTool[]): ToolConfiguration | undefined {
+	private mapKodyToolsToBedrockToolConfig(tools?: KodyTool[]): ToolConfiguration | undefined {
 		if (!tools || tools.length === 0) {
 			return undefined
 		}
 
-		const isAnthropicTool = (tool: ClineTool): tool is AnthropicTool => "input_schema" in tool
+		const isAnthropicTool = (tool: KodyTool): tool is AnthropicTool => "input_schema" in tool
 
 		const bedrockTools = tools.filter(isAnthropicTool).map((tool) => {
 			return {
@@ -898,11 +898,11 @@ export class AwsBedrockHandler implements ApiHandler {
 	 */
 	private async *createAnthropicMessage(
 		systemPrompt: string,
-		messages: ClineStorageMessage[],
+		messages: KodyStorageMessage[],
 		modelId: string,
 		model: { id: string; info: ModelInfo },
 		enable1mContextWindow: boolean,
-		tools?: ClineTool[],
+		tools?: KodyTool[],
 	): ApiStream {
 		// Format messages for Anthropic model using unified formatter
 		const formattedMessages = this.formatMessagesForConverseAPI(messages)
@@ -925,7 +925,7 @@ export class AwsBedrockHandler implements ApiHandler {
 		const reasoningOn = model.info.supportsReasoning && budget_tokens > 0
 
 		// Prepare request for Anthropic model using Converse API
-		const toolConfig = this.mapClineToolsToBedrockToolConfig(tools)
+		const toolConfig = this.mapKodyToolsToBedrockToolConfig(tools)
 		const command = new ConverseStreamCommand({
 			modelId: modelId,
 			messages: messagesWithCache,
@@ -954,7 +954,7 @@ export class AwsBedrockHandler implements ApiHandler {
 	 * Formats messages for models using the Converse API specification
 	 * Used by both Anthropic and Nova models to avoid code duplication
 	 */
-	private formatMessagesForConverseAPI(messages: ClineStorageMessage[]): Message[] {
+	private formatMessagesForConverseAPI(messages: KodyStorageMessage[]): Message[] {
 		return messages.map((message) => {
 			// Determine role (user or assistant)
 			const role = message.role === "user" ? ConversationRole.USER : ConversationRole.ASSISTANT
@@ -1134,10 +1134,10 @@ export class AwsBedrockHandler implements ApiHandler {
 	 */
 	private async *createNovaMessage(
 		systemPrompt: string,
-		messages: ClineStorageMessage[],
+		messages: KodyStorageMessage[],
 		modelId: string,
 		model: { id: string; info: ModelInfo },
-		tools?: ClineTool[],
+		tools?: KodyTool[],
 	): ApiStream {
 		// Format messages for Nova model using unified formatter
 		const formattedMessages = this.formatMessagesForConverseAPI(messages)
@@ -1158,7 +1158,7 @@ export class AwsBedrockHandler implements ApiHandler {
 		const systemMessages = this.prepareSystemMessages(systemPrompt, enableCaching || false)
 
 		// Prepare request for Nova model
-		const toolConfig = this.mapClineToolsToBedrockToolConfig(tools)
+		const toolConfig = this.mapKodyToolsToBedrockToolConfig(tools)
 		const command = new ConverseStreamCommand({
 			modelId: modelId,
 			messages: messagesWithCache,
@@ -1177,10 +1177,10 @@ export class AwsBedrockHandler implements ApiHandler {
 	 */
 	private async *createOpenAIMessage(
 		systemPrompt: string,
-		messages: ClineStorageMessage[],
+		messages: KodyStorageMessage[],
 		modelId: string,
 		model: { id: string; info: ModelInfo },
-		tools?: ClineTool[],
+		tools?: KodyTool[],
 	): ApiStream {
 		// Get Bedrock client with proper credentials
 		const client = await this.getBedrockClient()
@@ -1192,7 +1192,7 @@ export class AwsBedrockHandler implements ApiHandler {
 		const systemMessages = systemPrompt ? [{ text: systemPrompt }] : undefined
 
 		// Prepare the non-streaming Converse command
-		const toolConfig = this.mapClineToolsToBedrockToolConfig(tools)
+		const toolConfig = this.mapKodyToolsToBedrockToolConfig(tools)
 		const command = new ConverseCommand({
 			modelId: modelId,
 			messages: formattedMessages,
@@ -1315,10 +1315,10 @@ export class AwsBedrockHandler implements ApiHandler {
 	 */
 	private async *createQwenMessage(
 		systemPrompt: string,
-		messages: ClineStorageMessage[],
+		messages: KodyStorageMessage[],
 		modelId: string,
 		model: { id: string; info: ModelInfo },
-		tools?: ClineTool[],
+		tools?: KodyTool[],
 	): ApiStream {
 		// Get Bedrock client with proper credentials
 		const client = await this.getBedrockClient()
@@ -1330,7 +1330,7 @@ export class AwsBedrockHandler implements ApiHandler {
 		const systemMessages = systemPrompt ? [{ text: systemPrompt }] : undefined
 
 		// Prepare the non-streaming Converse command
-		const toolConfig = this.mapClineToolsToBedrockToolConfig(tools)
+		const toolConfig = this.mapKodyToolsToBedrockToolConfig(tools)
 		const command = new ConverseCommand({
 			modelId: modelId,
 			messages: formattedMessages,

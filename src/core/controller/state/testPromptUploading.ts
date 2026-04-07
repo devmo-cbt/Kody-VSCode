@@ -1,7 +1,7 @@
-import { EmptyRequest } from "@shared/proto/cline/common"
-import { TestConnectionResult } from "@shared/proto/cline/state"
+import { EmptyRequest } from "@shared/proto/kody/common"
+import { TestConnectionResult } from "@shared/proto/kody/state"
 import { Logger } from "@/shared/services/Logger"
-import { blobStorage } from "@/shared/storage/ClineBlobStorage"
+import { blobStorage } from "@/shared/storage/KodyBlobStorage"
 import { Controller } from ".."
 
 /**
@@ -19,7 +19,7 @@ export async function testPromptUploading(_controller: Controller, _: EmptyReque
 			})
 		}
 
-		const testKey = `cline-test-${Date.now()}.json`
+		const testKey = `kody-test-${Date.now()}.json`
 		const testContent = JSON.stringify({
 			test: true,
 			timestamp: new Date().toISOString(),

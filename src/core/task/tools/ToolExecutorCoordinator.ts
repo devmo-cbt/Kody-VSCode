@@ -1,6 +1,6 @@
 import type { ToolUse } from "@core/assistant-message"
 import { CLINE_MCP_TOOL_IDENTIFIER } from "@/shared/mcp"
-import { ClineDefaultTool } from "@/shared/tools"
+import { KodyDefaultTool } from "@/shared/tools"
 import type { ToolResponse } from "../index"
 import { AccessMcpResourceHandler } from "./handlers/AccessMcpResourceHandler"
 import { ActModeRespondHandler } from "./handlers/ActModeRespondHandler"
@@ -32,7 +32,7 @@ import type { TaskConfig } from "./types/TaskConfig"
 import type { StronglyTypedUIHelpers } from "./types/UIHelpers"
 
 export interface IToolHandler {
-	readonly name: ClineDefaultTool
+	readonly name: KodyDefaultTool
 	execute(config: TaskConfig, block: ToolUse): Promise<ToolResponse>
 	getDescription(block: ToolUse): string
 }
@@ -51,7 +51,7 @@ export interface IFullyManagedTool extends IToolHandler, IPartialBlockHandler {
  */
 export class SharedToolHandler implements IFullyManagedTool {
 	constructor(
-		public readonly name: ClineDefaultTool,
+		public readonly name: KodyDefaultTool,
 		private baseHandler: IFullyManagedTool,
 	) {}
 
@@ -76,36 +76,36 @@ export class ToolExecutorCoordinator {
 	private handlers = new Map<string, IToolHandler>()
 	private dynamicSubagentHandlers = new Map<string, IToolHandler>()
 
-	private readonly toolHandlersMap: Record<ClineDefaultTool, (v: ToolValidator) => IToolHandler | undefined> = {
-		[ClineDefaultTool.ASK]: (_v: ToolValidator) => new AskFollowupQuestionToolHandler(),
-		[ClineDefaultTool.ATTEMPT]: (_v: ToolValidator) => new AttemptCompletionHandler(),
-		[ClineDefaultTool.BASH]: (v: ToolValidator) => new ExecuteCommandToolHandler(v),
-		[ClineDefaultTool.FILE_EDIT]: (v: ToolValidator) =>
-			new SharedToolHandler(ClineDefaultTool.FILE_EDIT, new WriteToFileToolHandler(v)),
-		[ClineDefaultTool.FILE_READ]: (v: ToolValidator) => new ReadFileToolHandler(v),
-		[ClineDefaultTool.FILE_NEW]: (v: ToolValidator) => new WriteToFileToolHandler(v),
-		[ClineDefaultTool.SEARCH]: (v: ToolValidator) => new SearchFilesToolHandler(v),
-		[ClineDefaultTool.LIST_FILES]: (v: ToolValidator) => new ListFilesToolHandler(v),
-		[ClineDefaultTool.LIST_CODE_DEF]: (v: ToolValidator) => new ListCodeDefinitionNamesToolHandler(v),
-		[ClineDefaultTool.BROWSER]: (_v: ToolValidator) => new BrowserToolHandler(),
-		[ClineDefaultTool.MCP_USE]: (_v: ToolValidator) => new UseMcpToolHandler(),
-		[ClineDefaultTool.MCP_ACCESS]: (_v: ToolValidator) => new AccessMcpResourceHandler(),
-		[ClineDefaultTool.MCP_DOCS]: (_v: ToolValidator) => new LoadMcpDocumentationHandler(),
-		[ClineDefaultTool.NEW_TASK]: (_v: ToolValidator) => new NewTaskHandler(),
-		[ClineDefaultTool.PLAN_MODE]: (_v: ToolValidator) => new PlanModeRespondHandler(),
-		[ClineDefaultTool.ACT_MODE]: (_v: ToolValidator) => new ActModeRespondHandler(),
-		[ClineDefaultTool.TODO]: (_v: ToolValidator) => undefined,
-		[ClineDefaultTool.WEB_FETCH]: (_v: ToolValidator) => new WebFetchToolHandler(),
-		[ClineDefaultTool.WEB_SEARCH]: (_v: ToolValidator) => new WebSearchToolHandler(),
-		[ClineDefaultTool.CONDENSE]: (_v: ToolValidator) => new CondenseHandler(),
-		[ClineDefaultTool.SUMMARIZE_TASK]: (_v: ToolValidator) => new SummarizeTaskHandler(_v),
-		[ClineDefaultTool.REPORT_BUG]: (_v: ToolValidator) => new ReportBugHandler(),
-		[ClineDefaultTool.NEW_RULE]: (v: ToolValidator) =>
-			new SharedToolHandler(ClineDefaultTool.NEW_RULE, new WriteToFileToolHandler(v)),
-		[ClineDefaultTool.APPLY_PATCH]: (_v: ToolValidator) => new ApplyPatchHandler(_v),
-		[ClineDefaultTool.GENERATE_EXPLANATION]: (_v: ToolValidator) => new GenerateExplanationToolHandler(),
-		[ClineDefaultTool.USE_SKILL]: (_v: ToolValidator) => new UseSkillToolHandler(),
-		[ClineDefaultTool.USE_SUBAGENTS]: (_v: ToolValidator) => new UseSubagentsToolHandler(),
+	private readonly toolHandlersMap: Record<KodyDefaultTool, (v: ToolValidator) => IToolHandler | undefined> = {
+		[KodyDefaultTool.ASK]: (_v: ToolValidator) => new AskFollowupQuestionToolHandler(),
+		[KodyDefaultTool.ATTEMPT]: (_v: ToolValidator) => new AttemptCompletionHandler(),
+		[KodyDefaultTool.BASH]: (v: ToolValidator) => new ExecuteCommandToolHandler(v),
+		[KodyDefaultTool.FILE_EDIT]: (v: ToolValidator) =>
+			new SharedToolHandler(KodyDefaultTool.FILE_EDIT, new WriteToFileToolHandler(v)),
+		[KodyDefaultTool.FILE_READ]: (v: ToolValidator) => new ReadFileToolHandler(v),
+		[KodyDefaultTool.FILE_NEW]: (v: ToolValidator) => new WriteToFileToolHandler(v),
+		[KodyDefaultTool.SEARCH]: (v: ToolValidator) => new SearchFilesToolHandler(v),
+		[KodyDefaultTool.LIST_FILES]: (v: ToolValidator) => new ListFilesToolHandler(v),
+		[KodyDefaultTool.LIST_CODE_DEF]: (v: ToolValidator) => new ListCodeDefinitionNamesToolHandler(v),
+		[KodyDefaultTool.BROWSER]: (_v: ToolValidator) => new BrowserToolHandler(),
+		[KodyDefaultTool.MCP_USE]: (_v: ToolValidator) => new UseMcpToolHandler(),
+		[KodyDefaultTool.MCP_ACCESS]: (_v: ToolValidator) => new AccessMcpResourceHandler(),
+		[KodyDefaultTool.MCP_DOCS]: (_v: ToolValidator) => new LoadMcpDocumentationHandler(),
+		[KodyDefaultTool.NEW_TASK]: (_v: ToolValidator) => new NewTaskHandler(),
+		[KodyDefaultTool.PLAN_MODE]: (_v: ToolValidator) => new PlanModeRespondHandler(),
+		[KodyDefaultTool.ACT_MODE]: (_v: ToolValidator) => new ActModeRespondHandler(),
+		[KodyDefaultTool.TODO]: (_v: ToolValidator) => undefined,
+		[KodyDefaultTool.WEB_FETCH]: (_v: ToolValidator) => new WebFetchToolHandler(),
+		[KodyDefaultTool.WEB_SEARCH]: (_v: ToolValidator) => new WebSearchToolHandler(),
+		[KodyDefaultTool.CONDENSE]: (_v: ToolValidator) => new CondenseHandler(),
+		[KodyDefaultTool.SUMMARIZE_TASK]: (_v: ToolValidator) => new SummarizeTaskHandler(_v),
+		[KodyDefaultTool.REPORT_BUG]: (_v: ToolValidator) => new ReportBugHandler(),
+		[KodyDefaultTool.NEW_RULE]: (v: ToolValidator) =>
+			new SharedToolHandler(KodyDefaultTool.NEW_RULE, new WriteToFileToolHandler(v)),
+		[KodyDefaultTool.APPLY_PATCH]: (_v: ToolValidator) => new ApplyPatchHandler(_v),
+		[KodyDefaultTool.GENERATE_EXPLANATION]: (_v: ToolValidator) => new GenerateExplanationToolHandler(),
+		[KodyDefaultTool.USE_SKILL]: (_v: ToolValidator) => new UseSkillToolHandler(),
+		[KodyDefaultTool.USE_SUBAGENTS]: (_v: ToolValidator) => new UseSubagentsToolHandler(),
 	}
 
 	/**
@@ -115,7 +115,7 @@ export class ToolExecutorCoordinator {
 		this.handlers.set(handler.name, handler)
 	}
 
-	registerByName(toolName: ClineDefaultTool, validator: ToolValidator): void {
+	registerByName(toolName: KodyDefaultTool, validator: ToolValidator): void {
 		const handler = this.toolHandlersMap[toolName]?.(validator)
 		if (handler) {
 			this.register(handler)
@@ -135,7 +135,7 @@ export class ToolExecutorCoordinator {
 	getHandler(toolName: string): IToolHandler | undefined {
 		// HACK: Normalize MCP tool names to the standard handler
 		if (toolName.includes(CLINE_MCP_TOOL_IDENTIFIER)) {
-			toolName = ClineDefaultTool.MCP_USE
+			toolName = KodyDefaultTool.MCP_USE
 		}
 
 		const staticHandler = this.handlers.get(toolName)
@@ -148,7 +148,7 @@ export class ToolExecutorCoordinator {
 			if (existingHandler) {
 				return existingHandler
 			}
-			const handler = new SharedToolHandler(toolName as ClineDefaultTool, new UseSubagentsToolHandler())
+			const handler = new SharedToolHandler(toolName as KodyDefaultTool, new UseSubagentsToolHandler())
 			this.dynamicSubagentHandlers.set(toolName, handler)
 			return handler
 		}

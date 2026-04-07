@@ -5,35 +5,35 @@ import Mutex from "p-mutex"
 import { findLastIndex } from "@/shared/array"
 import { combineApiRequests } from "@/shared/combineApiRequests"
 import { combineCommandSequences } from "@/shared/combineCommandSequences"
-import { ClineMessage } from "@/shared/ExtensionMessage"
+import { KodyMessage } from "@/shared/ExtensionMessage"
 import { getApiMetrics } from "@/shared/getApiMetrics"
 import { HistoryItem } from "@/shared/HistoryItem"
-import { ClineStorageMessage } from "@/shared/messages/content"
+import { KodyStorageMessage } from "@/shared/messages/content"
 import { Logger } from "@/shared/services/Logger"
 import { getCwd, getDesktopDir } from "@/utils/path"
-import { ensureTaskDirectoryExists, saveApiConversationHistory, saveClineMessages } from "../storage/disk"
+import { ensureTaskDirectoryExists, saveApiConversationHistory, saveKodyMessages } from "../storage/disk"
 import { TaskState } from "./TaskState"
 
-// Event types for clineMessages changes
-export type ClineMessageChangeType = "add" | "update" | "delete" | "set"
+// Event types for kodyMessages changes
+export type KodyMessageChangeType = "add" | "update" | "delete" | "set"
 
-export interface ClineMessageChange {
-	type: ClineMessageChangeType
+export interface KodyMessageChange {
+	type: KodyMessageChangeType
 	/** The full array after the change */
-	messages: ClineMessage[]
+	messages: KodyMessage[]
 	/** The affected index (for add/update/delete) */
 	index?: number
 	/** The new/updated message (for add/update) */
-	message?: ClineMessage
+	message?: KodyMessage
 	/** The old message before change (for update/delete) */
-	previousMessage?: ClineMessage
+	previousMessage?: KodyMessage
 	/** The entire previous array (for set) */
-	previousMessages?: ClineMessage[]
+	previousMessages?: KodyMessage[]
 }
 
 // Strongly-typed event emitter interface
 export interface MessageStateHandlerEvents {
-	clineMessagesChanged: [change: ClineMessageChange]
+	kodyMessagesChanged: [change: KodyMessageChange]
 }
 
 interface MessageStateHandlerParams {
@@ -46,8 +46,8 @@ interface MessageStateHandlerParams {
 }
 
 export class MessageStateHandler extends EventEmitter<MessageStateHandlerEvents> {
-	private apiConversationHistory: ClineStorageMessage[] = []
-	private clineMessages: ClineMessage[] = []
+	private apiConversationHistory: KodyStorageMessage[] = []
+	private kodyMessages: KodyMessage[] = []
 	private taskIsFavorited: boolean
 	private checkpointTracker: CheckpointTracker | undefined
 	private updateTaskHistory: (historyItem: HistoryItem) => Promise<HistoryItem[]>
@@ -71,10 +71,10 @@ export class MessageStateHandler extends EventEmitter<MessageStateHandlerEvents>
 	}
 
 	/**
-	 * Emit a clineMessagesChanged event with the change details
+	 * Emit a kodyMessagesChanged event with the change details
 	 */
-	private emitClineMessagesChanged(change: ClineMessageChange): void {
-		this.emit("clineMessagesChanged", change)
+	private emitKodyMessagesChanged(change: KodyMessageChange): void {
+		this.emit("kodyMessagesChanged", change)
 	}
 
 	setCheckpointTracker(tracker: CheckpointTracker | undefined) {
@@ -90,24 +90,24 @@ export class MessageStateHandler extends EventEmitter<MessageStateHandlerEvents>
 		return await this.stateMutex.withLock(fn)
 	}
 
-	getApiConversationHistory(): ClineStorageMessage[] {
+	getApiConversationHistory(): KodyStorageMessage[] {
 		return this.apiConversationHistory
 	}
 
-	setApiConversationHistory(newHistory: ClineStorageMessage[]): void {
+	setApiConversationHistory(newHistory: KodyStorageMessage[]): void {
 		this.apiConversationHistory = newHistory
 	}
 
-	getClineMessages(): ClineMessage[] {
-		return this.clineMessages
+	getKodyMessages(): KodyMessage[] {
+		return this.kodyMessages
 	}
 
-	setClineMessages(newMessages: ClineMessage[]) {
-		const previousMessages = this.clineMessages
-		this.clineMessages = newMessages
-		this.emitClineMessagesChanged({
+	setKodyMessages(newMessages: KodyMessage[]) {
+		const previousMessages = this.kodyMessages
+		this.kodyMessages = newMessages
+		this.emitKodyMessagesChanged({
 			type: "set",
-			messages: this.clineMessages,
+			messages: this.kodyMessages,
 			previousMessages,
 		})
 	}
@@ -115,19 +115,19 @@ export class MessageStateHandler extends EventEmitter<MessageStateHandlerEvents>
 	/**
 	 * Internal method to save messages and update history (without mutex protection)
 	 * This is used by methods that already hold the stateMutex lock
-	 * Should NOT be called directly - use saveClineMessagesAndUpdateHistory() instead
+	 * Should NOT be called directly - use saveKodyMessagesAndUpdateHistory() instead
 	 */
-	private async saveClineMessagesAndUpdateHistoryInternal(): Promise<void> {
+	private async saveKodyMessagesAndUpdateHistoryInternal(): Promise<void> {
 		try {
-			await saveClineMessages(this.taskId, this.clineMessages)
+			await saveKodyMessages(this.taskId, this.kodyMessages)
 
 			// combined as they are in ChatView
-			const apiMetrics = getApiMetrics(combineApiRequests(combineCommandSequences(this.clineMessages.slice(1))))
-			const taskMessage = this.clineMessages[0] // first message is always the task say
+			const apiMetrics = getApiMetrics(combineApiRequests(combineCommandSequences(this.kodyMessages.slice(1))))
+			const taskMessage = this.kodyMessages[0] // first message is always the task say
 			const lastRelevantMessage =
-				this.clineMessages[
+				this.kodyMessages[
 					findLastIndex(
-						this.clineMessages,
+						this.kodyMessages,
 						(message) => !(message.ask === "resume_task" || message.ask === "resume_completed_task"),
 					)
 				]
@@ -161,21 +161,21 @@ export class MessageStateHandler extends EventEmitter<MessageStateHandlerEvents>
 				modelId: lastModelInfo?.modelInfo?.modelId,
 			})
 		} catch (error) {
-			Logger.error("Failed to save cline messages:", error)
+			Logger.error("Failed to save kody messages:", error)
 		}
 	}
 
 	/**
-	 * Save cline messages and update task history (public API with mutex protection)
+	 * Save kody messages and update task history (public API with mutex protection)
 	 * This is the main entry point for saving message state from external callers
 	 */
-	async saveClineMessagesAndUpdateHistory(): Promise<void> {
+	async saveKodyMessagesAndUpdateHistory(): Promise<void> {
 		return await this.withStateLock(async () => {
-			await this.saveClineMessagesAndUpdateHistoryInternal()
+			await this.saveKodyMessagesAndUpdateHistoryInternal()
 		})
 	}
 
-	async addToApiConversationHistory(message: ClineStorageMessage) {
+	async addToApiConversationHistory(message: KodyStorageMessage) {
 		// Protect with mutex to prevent concurrent modifications from corrupting data (RC-4)
 		return await this.withStateLock(async () => {
 			this.apiConversationHistory.push(message)
@@ -183,7 +183,7 @@ export class MessageStateHandler extends EventEmitter<MessageStateHandlerEvents>
 		})
 	}
 
-	async overwriteApiConversationHistory(newHistory: ClineStorageMessage[]): Promise<void> {
+	async overwriteApiConversationHistory(newHistory: KodyStorageMessage[]): Promise<void> {
 		// Protect with mutex to prevent concurrent modifications from corrupting data (RC-4)
 		return await this.withStateLock(async () => {
 			this.apiConversationHistory = newHistory
@@ -192,100 +192,100 @@ export class MessageStateHandler extends EventEmitter<MessageStateHandlerEvents>
 	}
 
 	/**
-	 * Add a new message to clineMessages array with proper index tracking
+	 * Add a new message to kodyMessages array with proper index tracking
 	 * CRITICAL: This entire operation must be atomic to prevent race conditions (RC-4)
 	 * The conversationHistoryIndex must be set correctly based on the current state,
 	 * and the message must be added and saved without any interleaving operations
 	 */
-	async addToClineMessages(message: ClineMessage) {
+	async addToKodyMessages(message: KodyMessage) {
 		return await this.withStateLock(async () => {
-			// these values allow us to reconstruct the conversation history at the time this cline message was created
-			// it's important that apiConversationHistory is initialized before we add cline messages
-			message.conversationHistoryIndex = this.apiConversationHistory.length - 1 // NOTE: this is the index of the last added message which is the user message, and once the clinemessages have been presented we update the apiconversationhistory with the completed assistant message. This means when resetting to a message, we need to +1 this index to get the correct assistant message that this tool use corresponds to
+			// these values allow us to reconstruct the conversation history at the time this kody message was created
+			// it's important that apiConversationHistory is initialized before we add kody messages
+			message.conversationHistoryIndex = this.apiConversationHistory.length - 1 // NOTE: this is the index of the last added message which is the user message, and once the kodymessages have been presented we update the apiconversationhistory with the completed assistant message. This means when resetting to a message, we need to +1 this index to get the correct assistant message that this tool use corresponds to
 			message.conversationHistoryDeletedRange = this.taskState.conversationHistoryDeletedRange
-			const index = this.clineMessages.length
-			this.clineMessages.push(message)
-			this.emitClineMessagesChanged({
+			const index = this.kodyMessages.length
+			this.kodyMessages.push(message)
+			this.emitKodyMessagesChanged({
 				type: "add",
-				messages: this.clineMessages,
+				messages: this.kodyMessages,
 				index,
 				message,
 			})
-			await this.saveClineMessagesAndUpdateHistoryInternal()
+			await this.saveKodyMessagesAndUpdateHistoryInternal()
 		})
 	}
 
 	/**
-	 * Replace the entire clineMessages array with new messages
+	 * Replace the entire kodyMessages array with new messages
 	 * Protected by mutex to prevent concurrent modifications (RC-4)
 	 */
-	async overwriteClineMessages(newMessages: ClineMessage[]) {
+	async overwriteKodyMessages(newMessages: KodyMessage[]) {
 		return await this.withStateLock(async () => {
-			const previousMessages = this.clineMessages
-			this.clineMessages = newMessages
-			this.emitClineMessagesChanged({
+			const previousMessages = this.kodyMessages
+			this.kodyMessages = newMessages
+			this.emitKodyMessagesChanged({
 				type: "set",
-				messages: this.clineMessages,
+				messages: this.kodyMessages,
 				previousMessages,
 			})
-			await this.saveClineMessagesAndUpdateHistoryInternal()
+			await this.saveKodyMessagesAndUpdateHistoryInternal()
 		})
 	}
 
 	/**
-	 * Update a specific message in the clineMessages array
+	 * Update a specific message in the kodyMessages array
 	 * The entire operation (validate, update, save) is atomic to prevent races (RC-4)
 	 */
-	async updateClineMessage(index: number, updates: Partial<ClineMessage>): Promise<void> {
+	async updateKodyMessage(index: number, updates: Partial<KodyMessage>): Promise<void> {
 		return await this.withStateLock(async () => {
-			if (index < 0 || index >= this.clineMessages.length) {
+			if (index < 0 || index >= this.kodyMessages.length) {
 				throw new Error(`Invalid message index: ${index}`)
 			}
 
 			// Capture previous state before mutation
-			const previousMessage = { ...this.clineMessages[index] }
+			const previousMessage = { ...this.kodyMessages[index] }
 
 			// Apply updates to the message
-			Object.assign(this.clineMessages[index], updates)
+			Object.assign(this.kodyMessages[index], updates)
 
-			this.emitClineMessagesChanged({
+			this.emitKodyMessagesChanged({
 				type: "update",
-				messages: this.clineMessages,
+				messages: this.kodyMessages,
 				index,
 				previousMessage,
-				message: this.clineMessages[index],
+				message: this.kodyMessages[index],
 			})
 
 			// Save changes and update history
-			await this.saveClineMessagesAndUpdateHistoryInternal()
+			await this.saveKodyMessagesAndUpdateHistoryInternal()
 		})
 	}
 
 	/**
-	 * Delete a specific message from the clineMessages array
+	 * Delete a specific message from the kodyMessages array
 	 * The entire operation (validate, delete, save) is atomic to prevent races (RC-4)
 	 */
-	async deleteClineMessage(index: number): Promise<void> {
+	async deleteKodyMessage(index: number): Promise<void> {
 		return await this.withStateLock(async () => {
-			if (index < 0 || index >= this.clineMessages.length) {
+			if (index < 0 || index >= this.kodyMessages.length) {
 				throw new Error(`Invalid message index: ${index}`)
 			}
 
 			// Capture the message before deletion
-			const previousMessage = this.clineMessages[index]
+			const previousMessage = this.kodyMessages[index]
 
 			// Remove the message at the specified index
-			this.clineMessages.splice(index, 1)
+			this.kodyMessages.splice(index, 1)
 
-			this.emitClineMessagesChanged({
+			this.emitKodyMessagesChanged({
 				type: "delete",
-				messages: this.clineMessages,
+				messages: this.kodyMessages,
 				index,
 				previousMessage,
 			})
 
 			// Save changes and update history
-			await this.saveClineMessagesAndUpdateHistoryInternal()
+			await this.saveKodyMessagesAndUpdateHistoryInternal()
 		})
 	}
 }

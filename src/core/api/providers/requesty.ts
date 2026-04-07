@@ -2,7 +2,7 @@ import { ModelInfo, requestyDefaultModelId, requestyDefaultModelInfo } from "@sh
 import { calculateApiCostOpenAI } from "@utils/cost"
 import OpenAI from "openai"
 import { toRequestyServiceStringUrl } from "@/shared/clients/requesty"
-import { ClineStorageMessage } from "@/shared/messages/content"
+import { KodyStorageMessage } from "@/shared/messages/content"
 import { createOpenAIClient } from "@/shared/net"
 import { ApiHandler, CommonApiHandlerOptions } from "../index"
 import { withRetry } from "../retry"
@@ -46,8 +46,8 @@ export class RequestyHandler implements ApiHandler {
 					baseURL: toRequestyServiceStringUrl(this.options.requestyBaseUrl),
 					apiKey: this.options.requestyApiKey,
 					defaultHeaders: {
-						"HTTP-Referer": "https://cline.bot",
-						"X-Title": "Cline",
+						"HTTP-Referer": "https://kody.bot",
+						"X-Title": "Kody",
 					},
 				})
 			} catch (error: any) {
@@ -58,7 +58,7 @@ export class RequestyHandler implements ApiHandler {
 	}
 
 	@withRetry()
-	async *createMessage(systemPrompt: string, messages: ClineStorageMessage[]): ApiStream {
+	async *createMessage(systemPrompt: string, messages: KodyStorageMessage[]): ApiStream {
 		const client = this.ensureClient()
 		const model = this.getModel()
 

@@ -1,4 +1,4 @@
-import { UpdateTerminalConnectionTimeoutResponse } from "@shared/proto/index.cline"
+import { UpdateTerminalConnectionTimeoutResponse } from "@shared/proto/index.kody"
 import { VSCodeCheckbox, VSCodeDropdown, VSCodeOption, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import React, { useState } from "react"
 import { PlatformType } from "@/config/platform.config"
@@ -168,7 +168,7 @@ export const TerminalSettingsSection: React.FC<TerminalSettingsSectionProps> = (
 							<strong>Having terminal issues?</strong> Check our{" "}
 							<a
 								className="text-(--vscode-textLink-foreground) underline hover:no-underline"
-								href="https://docs.cline.bot/troubleshooting/terminal-quick-fixes"
+								href="https://docs.kody.bot/troubleshooting/terminal-quick-fixes"
 								rel="noopener noreferrer"
 								target="_blank">
 								Terminal Quick Fixes
@@ -176,7 +176,7 @@ export const TerminalSettingsSection: React.FC<TerminalSettingsSectionProps> = (
 							or the{" "}
 							<a
 								className="text-(--vscode-textLink-foreground) underline hover:no-underline"
-								href="https://docs.cline.bot/troubleshooting/terminal-integration-guide"
+								href="https://docs.kody.bot/troubleshooting/terminal-integration-guide"
 								rel="noopener noreferrer"
 								target="_blank">
 								Complete Troubleshooting Guide

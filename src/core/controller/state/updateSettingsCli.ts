@@ -1,11 +1,11 @@
 import { buildApiHandler } from "@core/api"
 
-import { Empty } from "@shared/proto/cline/common"
-import { PlanActMode, UpdateSettingsRequestCli } from "@shared/proto/cline/state"
+import { Empty } from "@shared/proto/kody/common"
+import { PlanActMode, UpdateSettingsRequestCli } from "@shared/proto/kody/state"
 import { convertProtoToApiProvider } from "@shared/proto-conversions/models/api-configuration-conversion"
 import { Settings } from "@shared/storage/state-keys"
 import { TelemetrySetting } from "@shared/TelemetrySetting"
-import { ClineEnv } from "@/config"
+import { KodyEnv } from "@/config"
 import { HostProvider } from "@/hosts/host-provider"
 import { ShowMessageType } from "@/shared/proto/host/window"
 import { Logger } from "@/shared/services/Logger"
@@ -28,7 +28,7 @@ export async function updateSettingsCli(controller: Controller, request: UpdateS
 
 	try {
 		if (request.environment !== undefined) {
-			ClineEnv.setEnvironment(request.environment)
+			KodyEnv.setEnvironment(request.environment)
 			await accountLogoutClicked(controller, Empty.create())
 		}
 
@@ -48,7 +48,7 @@ export async function updateSettingsCli(controller: Controller, request: UpdateS
 				telemetrySetting,
 				yoloModeToggled,
 				useAutoCondense,
-				clineWebToolsEnabled,
+				kodyWebToolsEnabled,
 				worktreesEnabled,
 				subagentsEnabled,
 				focusChainSettings,
@@ -151,11 +151,11 @@ export async function updateSettingsCli(controller: Controller, request: UpdateS
 			}
 
 			// Update Web tools setting (requires telemetry)
-			if (clineWebToolsEnabled !== undefined) {
+			if (kodyWebToolsEnabled !== undefined) {
 				if (controller.task) {
-					telemetryService.captureClineWebToolsToggle(controller.task.ulid, clineWebToolsEnabled)
+					telemetryService.captureKodyWebToolsToggle(controller.task.ulid, kodyWebToolsEnabled)
 				}
-				controller.stateManager.setGlobalState("clineWebToolsEnabled", clineWebToolsEnabled)
+				controller.stateManager.setGlobalState("kodyWebToolsEnabled", kodyWebToolsEnabled)
 			}
 
 			// Update worktrees setting
@@ -182,7 +182,7 @@ export async function updateSettingsCli(controller: Controller, request: UpdateS
 
 				const newFocusChainSettings = {
 					enabled: isEnabled,
-					remindClineInterval: focusChainSettings.remindClineInterval,
+					remindKodyInterval: focusChainSettings.remindKodyInterval,
 				}
 				controller.stateManager.setGlobalState("focusChainSettings", newFocusChainSettings)
 

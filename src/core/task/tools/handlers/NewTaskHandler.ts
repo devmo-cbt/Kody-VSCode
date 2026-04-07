@@ -2,14 +2,14 @@ import type { ToolUse } from "@core/assistant-message"
 import { formatResponse } from "@core/prompts/responses"
 import { processFilesIntoText } from "@integrations/misc/extract-text"
 import { showSystemNotification } from "@integrations/notifications"
-import { ClineDefaultTool } from "@/shared/tools"
+import { KodyDefaultTool } from "@/shared/tools"
 import type { ToolResponse } from "../../index"
 import type { IPartialBlockHandler, IToolHandler } from "../ToolExecutorCoordinator"
 import type { TaskConfig } from "../types/TaskConfig"
 import type { StronglyTypedUIHelpers } from "../types/UIHelpers"
 
 export class NewTaskHandler implements IToolHandler, IPartialBlockHandler {
-	readonly name = ClineDefaultTool.NEW_TASK
+	readonly name = KodyDefaultTool.NEW_TASK
 	constructor() {}
 
 	getDescription(block: ToolUse): string {

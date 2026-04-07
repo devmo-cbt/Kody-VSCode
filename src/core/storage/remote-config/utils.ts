@@ -167,11 +167,11 @@ export function transformRemoteConfigToStateShape(remoteConfig: RemoteConfig): P
 		}
 	}
 
-	const clineSettings = remoteConfig.providerSettings?.Cline
-	if (clineSettings) {
-		transformed.planModeApiProvider = "cline"
-		transformed.actModeApiProvider = "cline"
-		providers.push("cline")
+	const kodySettings = remoteConfig.providerSettings?.Kody
+	if (kodySettings) {
+		transformed.planModeApiProvider = "kody"
+		transformed.actModeApiProvider = "kody"
+		providers.push("kody")
 	}
 
 	// Map LiteLLM provider settings
@@ -277,7 +277,7 @@ export function clearRemoteConfig() {
 
 		stateManager.clearRemoteConfig()
 		telemetryService.removeProvider(REMOTE_CONFIG_OTEL_PROVIDER_ID)
-		// the remote config cline rules toggle state is stored in global state
+		// the remote config kody rules toggle state is stored in global state
 		stateManager.setGlobalState("remoteRulesToggles", {})
 		stateManager.setGlobalState("remoteWorkflowToggles", {})
 

@@ -1,8 +1,8 @@
 import { expect } from "chai"
 import { describe, it } from "mocha"
 import { ModelFamily } from "@/shared/prompts"
-import { ClineDefaultTool } from "@/shared/tools"
-import type { ClineToolSpec } from "../spec"
+import { KodyDefaultTool } from "@/shared/tools"
+import type { KodyToolSpec } from "../spec"
 import { toolSpecFunctionDeclarations, toolSpecFunctionDefinition, toolSpecInputSchema } from "../spec"
 import type { SystemPromptContext } from "../types"
 
@@ -10,16 +10,16 @@ const mockContext: SystemPromptContext = {
 	cwd: "/test/project",
 	ide: "TestIde",
 	supportsBrowserUse: true,
-	clineWebToolsEnabled: true,
+	kodyWebToolsEnabled: true,
 	subagentsEnabled: true,
 	providerInfo: { providerId: "test", model: { id: "test-model", info: { supportsPromptCache: false } }, mode: "act" },
 	enableNativeToolCalls: false,
 	isTesting: true,
 }
 
-const makeTool = (overrides?: Partial<ClineToolSpec>): ClineToolSpec => ({
+const makeTool = (overrides?: Partial<KodyToolSpec>): KodyToolSpec => ({
 	variant: ModelFamily.GENERIC,
-	id: ClineDefaultTool.FILE_READ,
+	id: KodyDefaultTool.FILE_READ,
 	name: "read_file",
 	description: "Read a file",
 	parameters: [

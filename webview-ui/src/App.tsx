@@ -1,4 +1,4 @@
-import type { Boolean, EmptyRequest } from "@shared/proto/cline/common"
+import type { Boolean, EmptyRequest } from "@shared/proto/kody/common"
 import { useEffect } from "react"
 import AccountView from "./components/account/AccountView"
 import ChatView from "./components/chat/ChatView"
@@ -8,8 +8,8 @@ import OnboardingView from "./components/onboarding/OnboardingView"
 import SettingsView from "./components/settings/SettingsView"
 import WelcomeView from "./components/welcome/WelcomeView"
 import WorktreesView from "./components/worktrees/WorktreesView"
-import { useClineAuth } from "./context/ClineAuthContext"
 import { useExtensionState } from "./context/ExtensionStateContext"
+import { useKodyAuth } from "./context/KodyAuthContext"
 import { Providers } from "./Providers"
 import { UiServiceClient } from "./services/grpc-client"
 
@@ -38,7 +38,7 @@ const AppContent = () => {
 		hideAnnouncement,
 	} = useExtensionState()
 
-	const { clineUser, organizations, activeOrganization } = useClineAuth()
+	const { kodyUser, organizations, activeOrganization } = useKodyAuth()
 
 	useEffect(() => {
 		if (shouldShowAnnouncement) {
@@ -71,7 +71,7 @@ const AppContent = () => {
 			{showAccount && (
 				<AccountView
 					activeOrganization={activeOrganization}
-					clineUser={clineUser}
+					kodyUser={kodyUser}
 					onDone={hideAccount}
 					organizations={organizations}
 				/>

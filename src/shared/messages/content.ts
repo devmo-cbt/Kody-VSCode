@@ -1,11 +1,11 @@
 import { Anthropic } from "@anthropic-ai/sdk"
-import { ClineMessageMetricsInfo, ClineMessageModelInfo } from "./metrics"
+import { KodyMessageMetricsInfo, KodyMessageModelInfo } from "./metrics"
 
-export type ClinePromptInputContent = string
+export type KodyPromptInputContent = string
 
-export type ClineMessageRole = "user" | "assistant"
+export type KodyMessageRole = "user" | "assistant"
 
-export interface ClineReasoningDetailParam {
+export interface KodyReasoningDetailParam {
 	type: "reasoning.text" | string
 	text: string
 	signature: string
@@ -13,91 +13,91 @@ export interface ClineReasoningDetailParam {
 	index: number
 }
 
-interface ClineSharedMessageParam {
+interface KodySharedMessageParam {
 	// The id of the response that the block belongs to
 	call_id?: string
 }
 
-export const REASONING_DETAILS_PROVIDERS = ["cline", "openrouter"]
+export const REASONING_DETAILS_PROVIDERS = ["kody", "openrouter"]
 
 /**
- * An extension of Anthropic.MessageParam that includes Cline-specific fields: reasoning_details.
+ * An extension of Anthropic.MessageParam that includes Kody-specific fields: reasoning_details.
  * This ensures backward compatibility where the messages were stored in Anthropic format with additional
  * fields unknown to Anthropic SDK.
  */
-export interface ClineTextContentBlock extends Anthropic.TextBlockParam, ClineSharedMessageParam {
+export interface KodyTextContentBlock extends Anthropic.TextBlockParam, KodySharedMessageParam {
 	// reasoning_details only exists for providers listed in REASONING_DETAILS_PROVIDERS
-	reasoning_details?: ClineReasoningDetailParam[]
+	reasoning_details?: KodyReasoningDetailParam[]
 	// Thought Signature associates with Gemini
 	signature?: string
 }
 
-export interface ClineImageContentBlock extends Anthropic.ImageBlockParam, ClineSharedMessageParam {}
+export interface KodyImageContentBlock extends Anthropic.ImageBlockParam, KodySharedMessageParam {}
 
-export interface ClineDocumentContentBlock extends Anthropic.DocumentBlockParam, ClineSharedMessageParam {}
+export interface KodyDocumentContentBlock extends Anthropic.DocumentBlockParam, KodySharedMessageParam {}
 
-export interface ClineUserToolResultContentBlock extends Anthropic.ToolResultBlockParam, ClineSharedMessageParam {}
+export interface KodyUserToolResultContentBlock extends Anthropic.ToolResultBlockParam, KodySharedMessageParam {}
 
 /**
  * Assistant only content types
  */
-export interface ClineAssistantToolUseBlock extends Anthropic.ToolUseBlockParam, ClineSharedMessageParam {
+export interface KodyAssistantToolUseBlock extends Anthropic.ToolUseBlockParam, KodySharedMessageParam {
 	// reasoning_details only exists for providers listed in REASONING_DETAILS_PROVIDERS
-	reasoning_details?: unknown[] | ClineReasoningDetailParam[]
+	reasoning_details?: unknown[] | KodyReasoningDetailParam[]
 	// Thought Signature associates with Gemini
 	signature?: string
 }
 
-export interface ClineAssistantThinkingBlock extends Anthropic.ThinkingBlock, ClineSharedMessageParam {
+export interface KodyAssistantThinkingBlock extends Anthropic.ThinkingBlock, KodySharedMessageParam {
 	// The summary items returned by OpenAI response API
 	// The reasoning details that will be moved to the text block when finalized
-	summary?: unknown[] | ClineReasoningDetailParam[]
+	summary?: unknown[] | KodyReasoningDetailParam[]
 }
 
-export interface ClineAssistantRedactedThinkingBlock extends Anthropic.RedactedThinkingBlockParam, ClineSharedMessageParam {}
+export interface KodyAssistantRedactedThinkingBlock extends Anthropic.RedactedThinkingBlockParam, KodySharedMessageParam {}
 
-export type ClineToolResponseContent = ClinePromptInputContent | Array<ClineTextContentBlock | ClineImageContentBlock>
+export type KodyToolResponseContent = KodyPromptInputContent | Array<KodyTextContentBlock | KodyImageContentBlock>
 
-export type ClineUserContent =
-	| ClineTextContentBlock
-	| ClineImageContentBlock
-	| ClineDocumentContentBlock
-	| ClineUserToolResultContentBlock
+export type KodyUserContent =
+	| KodyTextContentBlock
+	| KodyImageContentBlock
+	| KodyDocumentContentBlock
+	| KodyUserToolResultContentBlock
 
-export type ClineAssistantContent =
-	| ClineTextContentBlock
-	| ClineImageContentBlock
-	| ClineDocumentContentBlock
-	| ClineAssistantToolUseBlock
-	| ClineAssistantThinkingBlock
-	| ClineAssistantRedactedThinkingBlock
+export type KodyAssistantContent =
+	| KodyTextContentBlock
+	| KodyImageContentBlock
+	| KodyDocumentContentBlock
+	| KodyAssistantToolUseBlock
+	| KodyAssistantThinkingBlock
+	| KodyAssistantRedactedThinkingBlock
 
-export type ClineContent = ClineUserContent | ClineAssistantContent
+export type KodyContent = KodyUserContent | KodyAssistantContent
 
 /**
- * An extension of Anthropic.MessageParam that includes Cline-specific fields.
+ * An extension of Anthropic.MessageParam that includes Kody-specific fields.
  * This ensures backward compatibility where the messages were stored in Anthropic format,
- * while allowing for additional metadata specific to Cline to avoid unknown fields in Anthropic SDK
+ * while allowing for additional metadata specific to Kody to avoid unknown fields in Anthropic SDK
  * added by ignoring the type checking for those fields.
  */
-export interface ClineStorageMessage extends Anthropic.MessageParam {
+export interface KodyStorageMessage extends Anthropic.MessageParam {
 	/**
 	 * Response ID associated with this message
 	 */
 	id?: string
-	role: ClineMessageRole
-	content: ClinePromptInputContent | ClineContent[]
+	role: KodyMessageRole
+	content: KodyPromptInputContent | KodyContent[]
 	/**
 	 * NOTE: model information used when generating this message.
 	 * Internal use for message conversion only.
 	 * MUST be removed before sending message to any LLM provider.
 	 */
-	modelInfo?: ClineMessageModelInfo
+	modelInfo?: KodyMessageModelInfo
 	/**
 	 * LLM operational and performance metrics for this message
 	 * Includes token counts, costs.
 	 */
-	metrics?: ClineMessageMetricsInfo
+	metrics?: KodyMessageMetricsInfo
 	/**
 	 * Timestamp of when the message was created
 	 */
@@ -105,14 +105,14 @@ export interface ClineStorageMessage extends Anthropic.MessageParam {
 }
 
 /**
- * Converts ClineStorageMessage to Anthropic.MessageParam by removing Cline-specific fields
- * Cline-specific fields (like modelInfo, reasoning_details) are properly omitted.
+ * Converts KodyStorageMessage to Anthropic.MessageParam by removing Kody-specific fields
+ * Kody-specific fields (like modelInfo, reasoning_details) are properly omitted.
  */
-export function convertClineStorageToAnthropicMessage(
-	clineMessage: ClineStorageMessage,
+export function convertKodyStorageToAnthropicMessage(
+	kodyMessage: KodyStorageMessage,
 	provider = "anthropic",
 ): Anthropic.MessageParam {
-	const { role, content } = clineMessage
+	const { role, content } = kodyMessage
 
 	// Handle string content - fast path
 	if (typeof content === "string") {
@@ -122,7 +122,7 @@ export function convertClineStorageToAnthropicMessage(
 	// Removes thinking block that has no signature (invalid thinking block that's incompatible with Anthropic API)
 	const filteredContent = content.filter((b) => b.type !== "thinking" || !!b.signature)
 
-	// Handle array content - strip Cline-specific fields for non-reasoning_details providers
+	// Handle array content - strip Kody-specific fields for non-reasoning_details providers
 	const shouldCleanContent = !REASONING_DETAILS_PROVIDERS.includes(provider)
 	const cleanedContent = shouldCleanContent
 		? filteredContent.map(cleanContentBlock)
@@ -132,21 +132,21 @@ export function convertClineStorageToAnthropicMessage(
 }
 
 /**
- * Clean a content block by removing Cline-specific fields and returning only Anthropic-compatible fields
+ * Clean a content block by removing Kody-specific fields and returning only Anthropic-compatible fields
  */
-export function cleanContentBlock(block: ClineContent): Anthropic.ContentBlock {
-	// Fast path: if no Cline-specific fields exist, return as-is
-	const hasClineFields =
+export function cleanContentBlock(block: KodyContent): Anthropic.ContentBlock {
+	// Fast path: if no Kody-specific fields exist, return as-is
+	const hasKodyFields =
 		"reasoning_details" in block ||
 		"call_id" in block ||
 		"summary" in block ||
 		(block.type !== "thinking" && "signature" in block)
 
-	if (!hasClineFields) {
+	if (!hasKodyFields) {
 		return block as Anthropic.ContentBlock
 	}
 
-	// Removes Cline-specific fields & the signature field that's added for Gemini.
+	// Removes Kody-specific fields & the signature field that's added for Gemini.
 	const { reasoning_details, call_id, summary, ...rest } = block as any
 
 	// Remove signature from non-thinking blocks that were added for Gemini

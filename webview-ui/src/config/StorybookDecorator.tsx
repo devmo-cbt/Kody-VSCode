@@ -5,13 +5,13 @@ import "../../src/index.css"
 import { cn } from "@heroui/react"
 import type { Decorator } from "@storybook/react-vite"
 import React from "react"
-import { ClineAuthContext, ClineAuthContextType, ClineAuthProvider, useClineAuth } from "@/context/ClineAuthContext"
 import {
 	ExtensionStateContext,
 	ExtensionStateContextProvider,
 	ExtensionStateContextType,
 	useExtensionState,
 } from "@/context/ExtensionStateContext"
+import { KodyAuthContext, KodyAuthContextType, KodyAuthProvider, useKodyAuth } from "@/context/KodyAuthContext"
 import { StorybookThemes } from "../../.storybook/themes"
 
 // Component that handles theme switching
@@ -45,9 +45,9 @@ function StorybookDecoratorProvider(className = "relative"): Decorator {
 		return (
 			<div className={className}>
 				<ExtensionStateContextProvider>
-					<ClineAuthProvider>
+					<KodyAuthProvider>
 						<ThemeHandler theme={parameters?.globals?.theme}>{React.createElement(story)}</ThemeHandler>
-					</ClineAuthProvider>
+					</KodyAuthProvider>
 				</ExtensionStateContextProvider>
 			</div>
 		)
@@ -63,23 +63,23 @@ const ExtensionStateProviderWithOverrides: React.FC<{
 	return <ExtensionStateContext.Provider value={{ ...extensionState, ...overrides }}>{children}</ExtensionStateContext.Provider>
 }
 
-const ClineAuthProviderWithOverrides: React.FC<{
-	overrides?: Partial<ClineAuthContextType>
+const KodyAuthProviderWithOverrides: React.FC<{
+	overrides?: Partial<KodyAuthContextType>
 	children: React.ReactNode
 }> = ({ overrides, children }) => {
-	const authContext = useClineAuth()
-	return <ClineAuthContext.Provider value={{ ...authContext, ...overrides }}>{children}</ClineAuthContext.Provider>
+	const authContext = useKodyAuth()
+	return <KodyAuthContext.Provider value={{ ...authContext, ...overrides }}>{children}</KodyAuthContext.Provider>
 }
 
 export const createStorybookDecorator =
-	(overrideStates?: Partial<ExtensionStateContextType>, classNames?: string, authOverrides?: Partial<ClineAuthContextType>) =>
+	(overrideStates?: Partial<ExtensionStateContextType>, classNames?: string, authOverrides?: Partial<KodyAuthContextType>) =>
 	(Story: any) => (
 		<ExtensionStateProviderWithOverrides overrides={overrideStates}>
-			<ClineAuthProviderWithOverrides overrides={authOverrides}>
+			<KodyAuthProviderWithOverrides overrides={authOverrides}>
 				<div className={cn("max-w-lg mx-auto", classNames)}>
 					<Story />
 				</div>
-			</ClineAuthProviderWithOverrides>
+			</KodyAuthProviderWithOverrides>
 		</ExtensionStateProviderWithOverrides>
 	)
 

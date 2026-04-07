@@ -1,5 +1,5 @@
-import { Empty } from "@shared/proto/cline/common"
-import { UpdateApiConfigurationRequest } from "@shared/proto/cline/models"
+import { Empty } from "@shared/proto/kody/common"
+import { UpdateApiConfigurationRequest } from "@shared/proto/kody/models"
 import { convertProtoToApiProvider } from "@shared/proto-conversions/models/api-configuration-conversion"
 import {
 	fromProtobufLiteLLMModelInfo,
@@ -47,8 +47,8 @@ export async function updateApiConfigurationProto(
 			planModeOpenRouterModelInfo: protoApiConfiguration.planModeOpenRouterModelInfo
 				? fromProtobufModelInfo(protoApiConfiguration.planModeOpenRouterModelInfo)
 				: undefined,
-			planModeClineModelInfo: protoApiConfiguration.planModeClineModelInfo
-				? fromProtobufModelInfo(protoApiConfiguration.planModeClineModelInfo)
+			planModeKodyModelInfo: protoApiConfiguration.planModeKodyModelInfo
+				? fromProtobufModelInfo(protoApiConfiguration.planModeKodyModelInfo)
 				: undefined,
 			planModeOpenAiModelInfo: protoApiConfiguration.planModeOpenAiModelInfo
 				? fromProtobufOpenAiCompatibleModelInfo(protoApiConfiguration.planModeOpenAiModelInfo)
@@ -85,8 +85,8 @@ export async function updateApiConfigurationProto(
 			actModeOpenRouterModelInfo: protoApiConfiguration.actModeOpenRouterModelInfo
 				? fromProtobufModelInfo(protoApiConfiguration.actModeOpenRouterModelInfo)
 				: undefined,
-			actModeClineModelInfo: protoApiConfiguration.actModeClineModelInfo
-				? fromProtobufModelInfo(protoApiConfiguration.actModeClineModelInfo)
+			actModeKodyModelInfo: protoApiConfiguration.actModeKodyModelInfo
+				? fromProtobufModelInfo(protoApiConfiguration.actModeKodyModelInfo)
 				: undefined,
 			actModeOpenAiModelInfo: protoApiConfiguration.actModeOpenAiModelInfo
 				? fromProtobufOpenAiCompatibleModelInfo(protoApiConfiguration.actModeOpenAiModelInfo)

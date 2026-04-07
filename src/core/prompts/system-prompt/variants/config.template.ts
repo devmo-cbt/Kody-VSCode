@@ -13,7 +13,7 @@
 
 import { ModelFamily } from "@/shared/prompts"
 import { Logger } from "@/shared/services/Logger"
-import { ClineDefaultTool } from "@/shared/tools"
+import { KodyDefaultTool } from "@/shared/tools"
 import { PromptVariant } from ".."
 import { SystemPromptSection } from "../templates/placeholders"
 import { baseTemplate } from "./generic/template"
@@ -47,22 +47,22 @@ export const config: Omit<PromptVariant, "id"> = createVariant(ModelFamily.GENER
 	.tools(
 		// Define tool order - this is type-safe and will show available options.
 		// If a tool is listed here but no variant was registered, it will fall back to the generic variant.
-		ClineDefaultTool.BASH,
-		ClineDefaultTool.FILE_READ,
-		ClineDefaultTool.FILE_NEW,
-		ClineDefaultTool.FILE_EDIT,
-		ClineDefaultTool.SEARCH,
-		ClineDefaultTool.LIST_FILES,
-		ClineDefaultTool.LIST_CODE_DEF,
-		ClineDefaultTool.BROWSER,
-		ClineDefaultTool.MCP_USE,
-		ClineDefaultTool.MCP_ACCESS,
-		ClineDefaultTool.ASK,
-		ClineDefaultTool.ATTEMPT,
-		ClineDefaultTool.NEW_TASK,
-		ClineDefaultTool.PLAN_MODE,
-		ClineDefaultTool.MCP_DOCS,
-		ClineDefaultTool.TODO,
+		KodyDefaultTool.BASH,
+		KodyDefaultTool.FILE_READ,
+		KodyDefaultTool.FILE_NEW,
+		KodyDefaultTool.FILE_EDIT,
+		KodyDefaultTool.SEARCH,
+		KodyDefaultTool.LIST_FILES,
+		KodyDefaultTool.LIST_CODE_DEF,
+		KodyDefaultTool.BROWSER,
+		KodyDefaultTool.MCP_USE,
+		KodyDefaultTool.MCP_ACCESS,
+		KodyDefaultTool.ASK,
+		KodyDefaultTool.ATTEMPT,
+		KodyDefaultTool.NEW_TASK,
+		KodyDefaultTool.PLAN_MODE,
+		KodyDefaultTool.MCP_DOCS,
+		KodyDefaultTool.TODO,
 	)
 	.placeholders({
 		MODEL_FAMILY: "your-model-family", // Replace with appropriate model family
@@ -78,7 +78,7 @@ export const config: Omit<PromptVariant, "id"> = createVariant(ModelFamily.GENER
 	//     template: customRulesTemplate,
 	// })
 	// Optional: Override specific tools
-	// .overrideTool(ClineDefaultTool.BASH, {
+	// .overrideTool(KodyDefaultTool.BASH, {
 	//     enabled: false,
 	// })
 	.build()
@@ -111,7 +111,7 @@ export const createMinimalVariant = (family: ModelFamily) =>
 			SystemPromptSection.RULES,
 			SystemPromptSection.SYSTEM_INFO,
 		)
-		.tools(ClineDefaultTool.FILE_READ, ClineDefaultTool.FILE_NEW, ClineDefaultTool.ATTEMPT)
+		.tools(KodyDefaultTool.FILE_READ, KodyDefaultTool.FILE_NEW, KodyDefaultTool.ATTEMPT)
 
 // Full-featured variant for advanced models
 export const createAdvancedVariant = (family: ModelFamily) =>
@@ -132,22 +132,22 @@ export const createAdvancedVariant = (family: ModelFamily) =>
 			SystemPromptSection.USER_INSTRUCTIONS,
 		)
 		.tools(
-			ClineDefaultTool.BASH,
-			ClineDefaultTool.FILE_READ,
-			ClineDefaultTool.FILE_NEW,
-			ClineDefaultTool.FILE_EDIT,
-			ClineDefaultTool.SEARCH,
-			ClineDefaultTool.LIST_FILES,
-			ClineDefaultTool.LIST_CODE_DEF,
-			ClineDefaultTool.BROWSER,
-			ClineDefaultTool.WEB_FETCH,
-			ClineDefaultTool.MCP_USE,
-			ClineDefaultTool.MCP_ACCESS,
-			ClineDefaultTool.ASK,
-			ClineDefaultTool.ATTEMPT,
-			ClineDefaultTool.NEW_TASK,
-			ClineDefaultTool.PLAN_MODE,
-			ClineDefaultTool.MCP_DOCS,
-			ClineDefaultTool.TODO,
-			ClineDefaultTool.USE_SUBAGENTS,
+			KodyDefaultTool.BASH,
+			KodyDefaultTool.FILE_READ,
+			KodyDefaultTool.FILE_NEW,
+			KodyDefaultTool.FILE_EDIT,
+			KodyDefaultTool.SEARCH,
+			KodyDefaultTool.LIST_FILES,
+			KodyDefaultTool.LIST_CODE_DEF,
+			KodyDefaultTool.BROWSER,
+			KodyDefaultTool.WEB_FETCH,
+			KodyDefaultTool.MCP_USE,
+			KodyDefaultTool.MCP_ACCESS,
+			KodyDefaultTool.ASK,
+			KodyDefaultTool.ATTEMPT,
+			KodyDefaultTool.NEW_TASK,
+			KodyDefaultTool.PLAN_MODE,
+			KodyDefaultTool.MCP_DOCS,
+			KodyDefaultTool.TODO,
+			KodyDefaultTool.USE_SUBAGENTS,
 		)

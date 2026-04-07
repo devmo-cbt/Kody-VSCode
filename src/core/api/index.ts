@@ -1,8 +1,8 @@
 import { ApiConfiguration, ModelInfo, QwenApiRegions } from "@shared/api"
 import { Mode } from "@shared/storage/types"
-import { ClineStorageMessage } from "@/shared/messages/content"
+import { KodyStorageMessage } from "@/shared/messages/content"
 import { Logger } from "@/shared/services/Logger"
-import { ClineTool } from "@/shared/tools"
+import { KodyTool } from "@/shared/tools"
 import { AIhubmixHandler } from "./providers/aihubmix"
 import { AnthropicHandler } from "./providers/anthropic"
 import { AskSageHandler } from "./providers/asksage"
@@ -10,7 +10,6 @@ import { BasetenHandler } from "./providers/baseten"
 import { AwsBedrockHandler } from "./providers/bedrock"
 import { CerebrasHandler } from "./providers/cerebras"
 import { ClaudeCodeHandler } from "./providers/claude-code"
-import { ClineHandler } from "./providers/cline"
 import { DeepSeekHandler } from "./providers/deepseek"
 import { DifyHandler } from "./providers/dify"
 import { DoubaoHandler } from "./providers/doubao"
@@ -20,6 +19,7 @@ import { GroqHandler } from "./providers/groq"
 import { HicapHandler } from "./providers/hicap"
 import { HuaweiCloudMaaSHandler } from "./providers/huawei-cloud-maas"
 import { HuggingFaceHandler } from "./providers/huggingface"
+import { KodyHandler } from "./providers/kody"
 import { LiteLlmHandler } from "./providers/litellm"
 import { LmStudioHandler } from "./providers/lmstudio"
 import { MinimaxHandler } from "./providers/minimax"
@@ -51,7 +51,7 @@ export type CommonApiHandlerOptions = {
 	onRetryAttempt?: ApiConfiguration["onRetryAttempt"]
 }
 export interface ApiHandler {
-	createMessage(systemPrompt: string, messages: ClineStorageMessage[], tools?: ClineTool[], useResponseApi?: boolean): ApiStream
+	createMessage(systemPrompt: string, messages: KodyStorageMessage[], tools?: KodyTool[], useResponseApi?: boolean): ApiStream
 	getModel(): ApiHandlerModel
 	getApiStreamUsage?(): Promise<ApiStreamUsageChunk | undefined>
 	abort?(): void
@@ -255,24 +255,24 @@ function createHandlerForProvider(
 				vsCodeLmModelSelector:
 					mode === "plan" ? options.planModeVsCodeLmModelSelector : options.actModeVsCodeLmModelSelector,
 			})
-		case "cline": {
-			const clineModelId =
-				(mode === "plan" ? options.planModeClineModelId : options.actModeClineModelId) ||
+		case "kody": {
+			const kodyModelId =
+				(mode === "plan" ? options.planModeKodyModelId : options.actModeKodyModelId) ||
 				(mode === "plan" ? options.planModeOpenRouterModelId : options.actModeOpenRouterModelId)
-			const clineModelInfo =
-				(mode === "plan" ? options.planModeClineModelInfo : options.actModeClineModelInfo) ||
+			const kodyModelInfo =
+				(mode === "plan" ? options.planModeKodyModelInfo : options.actModeKodyModelInfo) ||
 				(mode === "plan" ? options.planModeOpenRouterModelInfo : options.actModeOpenRouterModelInfo)
-			return new ClineHandler({
+			return new KodyHandler({
 				onRetryAttempt: options.onRetryAttempt,
-				clineAccountId: options.clineAccountId,
-				clineApiKey: options.clineApiKey,
+				kodyAccountId: options.kodyAccountId,
+				kodyApiKey: options.kodyApiKey,
 				ulid: options.ulid,
 				reasoningEffort: mode === "plan" ? options.planModeReasoningEffort : options.actModeReasoningEffort,
 				thinkingBudgetTokens:
 					mode === "plan" ? options.planModeThinkingBudgetTokens : options.actModeThinkingBudgetTokens,
 				openRouterProviderSorting: options.openRouterProviderSorting,
-				openRouterModelId: clineModelId,
-				openRouterModelInfo: clineModelInfo,
+				openRouterModelId: kodyModelId,
+				openRouterModelInfo: kodyModelInfo,
 				enableParallelToolCalling: options.enableParallelToolCalling,
 			})
 		}

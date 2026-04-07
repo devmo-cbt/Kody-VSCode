@@ -17,11 +17,11 @@ export function getConfiguredProviders(
 	const configured: ApiProvider[] = []
 
 	if (!apiConfiguration) {
-		return ["cline"] // Kody is always available
+		return ["kody"] // Kody is always available
 	}
 
-	// Cline - always available (uses account-based auth)
-	configured.push("cline")
+	// Kody - always available (uses account-based auth)
+	configured.push("kody")
 
 	// Anthropic - requires API key
 	if (apiConfiguration.apiKey) {

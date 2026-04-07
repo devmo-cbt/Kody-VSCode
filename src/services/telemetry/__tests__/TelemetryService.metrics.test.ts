@@ -1,4 +1,4 @@
-import { ApiFormat } from "@shared/proto/cline/models"
+import { ApiFormat } from "@shared/proto/kody/models"
 import * as assert from "assert"
 import type { ITelemetryProvider, TelemetryProperties, TelemetrySettings } from "../providers/ITelemetryProvider"
 import { TelemetryMetadata, TelemetryService } from "../TelemetryService"
@@ -67,7 +67,7 @@ class FakeProvider implements ITelemetryProvider {
 function createTelemetryService(provider: FakeProvider): TelemetryService {
 	return new TelemetryService([provider], {
 		extension_version: "test",
-		cline_type: "cline-unit-tests",
+		kody_type: "kody-unit-tests",
 		platform: "test-platform",
 		platform_version: "1.0.0",
 		os_type: "darwin",
@@ -216,7 +216,7 @@ describe("TelemetryService metrics", () => {
 				TelemetryService.METRICS.TASK.COST_TOTAL,
 			],
 		)
-		const costEntry = provider.counters.find((entry) => entry.name === "cline.cost.total")
+		const costEntry = provider.counters.find((entry) => entry.name === "kody.cost.total")
 		assert.ok(costEntry)
 		assert.strictEqual(costEntry?.attributes.ulid, "task-2")
 		assert.strictEqual(costEntry?.attributes.provider, "openai")
@@ -247,7 +247,7 @@ describe("TelemetryService metrics", () => {
 		const service = createTelemetryService(provider)
 
 		service.captureWorkspaceInitialized(3, ["Git"], 500)
-		const initialSeries = provider.gauges.get("cline.workspace.active_roots")
+		const initialSeries = provider.gauges.get("kody.workspace.active_roots")
 		assert.ok(initialSeries)
 		assert.strictEqual(initialSeries.size, 1)
 		const [initialEntry] = Array.from(initialSeries.values())
@@ -256,7 +256,7 @@ describe("TelemetryService metrics", () => {
 		assert.strictEqual(initialEntry.attributes.extension_version, "test")
 
 		service.captureWorkspaceInitialized(1, ["Git"], 200)
-		const updatedSeries = provider.gauges.get("cline.workspace.active_roots")
+		const updatedSeries = provider.gauges.get("kody.workspace.active_roots")
 		assert.ok(updatedSeries)
 		assert.strictEqual(updatedSeries.size, 1)
 		const [updatedEntry] = Array.from(updatedSeries.values())
@@ -336,13 +336,13 @@ describe("TelemetryService metrics", () => {
 		const provider = new FakeProvider()
 		const service = createTelemetryService(provider)
 
-		service.captureGrpcResponseSize(123456, "cline.StateService", "subscribeToState")
+		service.captureGrpcResponseSize(123456, "kody.StateService", "subscribeToState")
 
 		assert.strictEqual(provider.histograms.length, 1)
 		const entry = provider.histograms[0]
 		assert.strictEqual(entry.name, TelemetryService.METRICS.GRPC.RESPONSE_SIZE_BYTES)
 		assert.strictEqual(entry.value, 123456)
-		assert.strictEqual(entry.attributes.service, "cline.StateService")
+		assert.strictEqual(entry.attributes.service, "kody.StateService")
 		assert.strictEqual(entry.attributes.method, "subscribeToState")
 		assert.strictEqual(entry.description, "Size of gRPC response messages in bytes")
 		// Should not have request_id when not provided
@@ -353,7 +353,7 @@ describe("TelemetryService metrics", () => {
 		const provider = new FakeProvider()
 		const service = createTelemetryService(provider)
 
-		service.captureGrpcResponseSize(5000, "cline.StateService", "subscribeToState", "req-42")
+		service.captureGrpcResponseSize(5000, "kody.StateService", "subscribeToState", "req-42")
 
 		assert.strictEqual(provider.histograms.length, 1)
 		const entry = provider.histograms[0]
@@ -364,7 +364,7 @@ describe("TelemetryService metrics", () => {
 		const provider = new FakeProvider()
 		const service = createTelemetryService(provider)
 
-		service.captureGrpcResponseSize(1000, "cline.StateService", "subscribeToState")
+		service.captureGrpcResponseSize(1000, "kody.StateService", "subscribeToState")
 
 		const entry = provider.histograms[0]
 		assert.strictEqual(entry.attributes.extension_version, "test")

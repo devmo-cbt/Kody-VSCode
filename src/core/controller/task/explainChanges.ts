@@ -1,7 +1,7 @@
 import CheckpointTracker from "@integrations/checkpoints/CheckpointTracker"
 import { findLast } from "@shared/array"
-import { Empty } from "@shared/proto/cline/common"
-import { ExplainChangesRequest } from "@shared/proto/cline/task"
+import { Empty } from "@shared/proto/kody/common"
+import { ExplainChangesRequest } from "@shared/proto/kody/task"
 import { HostProvider } from "@/hosts/host-provider"
 import { ShowMessageType } from "@/shared/proto/index.host"
 import { Logger } from "@/shared/services/Logger"
@@ -72,9 +72,9 @@ export async function explainChanges(controller: Controller, request: ExplainCha
 		}
 
 		// Find the message
-		const clineMessages = messageStateHandler.getClineMessages()
-		const messageIndex = clineMessages.findIndex((m: any) => m.ts === request.messageTs)
-		const message = clineMessages[messageIndex]
+		const kodyMessages = messageStateHandler.getKodyMessages()
+		const messageIndex = kodyMessages.findIndex((m: any) => m.ts === request.messageTs)
+		const message = kodyMessages[messageIndex]
 
 		if (!message) {
 			Logger.error(`[explainChanges] Message not found for timestamp ${request.messageTs}`)
@@ -129,11 +129,11 @@ export async function explainChanges(controller: Controller, request: ExplainCha
 
 		// Get changed files (using seeNewChangesSinceLastTaskCompletion logic)
 		const lastTaskCompletedMessageCheckpointHash = findLast(
-			clineMessages.slice(0, messageIndex),
+			kodyMessages.slice(0, messageIndex),
 			(m: any) => m.say === "completion_result",
 		)?.lastCheckpointHash
 
-		const firstCheckpointMessageCheckpointHash = clineMessages.find(
+		const firstCheckpointMessageCheckpointHash = kodyMessages.find(
 			(m: any) => m.say === "checkpoint_created",
 		)?.lastCheckpointHash
 

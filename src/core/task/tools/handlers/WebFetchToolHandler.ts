@@ -1,12 +1,12 @@
-import { ClineAsk, ClineSayTool } from "@shared/ExtensionMessage"
-import { ClineDefaultTool } from "@shared/tools"
+import { KodyAsk, KodySayTool } from "@shared/ExtensionMessage"
+import { KodyDefaultTool } from "@shared/tools"
 import axios from "axios"
-import { ClineEnv } from "@/config"
+import { KodyEnv } from "@/config"
 import { AuthService } from "@/services/auth/AuthService"
-import { buildClineExtraHeaders } from "@/services/EnvUtils"
+import { buildKodyExtraHeaders } from "@/services/EnvUtils"
 import { featureFlagsService } from "@/services/feature-flags"
 import { telemetryService } from "@/services/telemetry"
-import { CLINE_ACCOUNT_AUTH_ERROR_MESSAGE } from "@/shared/ClineAccount"
+import { CLINE_ACCOUNT_AUTH_ERROR_MESSAGE } from "@/shared/KodyAccount"
 import { getAxiosSettings } from "@/shared/net"
 import { ToolUse } from "../../../assistant-message"
 import { formatResponse } from "../../../prompts/responses"
@@ -18,7 +18,7 @@ import type { StronglyTypedUIHelpers } from "../types/UIHelpers"
 import { ToolResultUtils } from "../utils/ToolResultUtils"
 
 export class WebFetchToolHandler implements IFullyManagedTool {
-	readonly name = ClineDefaultTool.WEB_FETCH
+	readonly name = KodyDefaultTool.WEB_FETCH
 
 	getDescription(block: ToolUse): string {
 		return `[${block.name} for '${block.params.url}']`
@@ -26,19 +26,19 @@ export class WebFetchToolHandler implements IFullyManagedTool {
 
 	async handlePartialBlock(block: ToolUse, uiHelpers: StronglyTypedUIHelpers): Promise<void> {
 		const url = block.params.url || ""
-		const sharedMessageProps: ClineSayTool = {
+		const sharedMessageProps: KodySayTool = {
 			tool: "webFetch",
 			path: uiHelpers.removeClosingTag(block, "url", url),
 			content: `Fetching URL: ${uiHelpers.removeClosingTag(block, "url", url)}`,
 			operationIsLocatedInWorkspace: false, // web_fetch is always external
-		} satisfies ClineSayTool
+		} satisfies KodySayTool
 
 		const partialMessage = JSON.stringify(sharedMessageProps)
 
 		// For partial blocks, we'll let the ToolExecutor handle auto-approval logic
 		// Just stream the UI update for now
 		await uiHelpers.removeLastPartialMessageIfExistsWithType("say", "tool")
-		await uiHelpers.ask("tool" as ClineAsk, partialMessage, block.partial).catch(() => {})
+		await uiHelpers.ask("tool" as KodyAsk, partialMessage, block.partial).catch(() => {})
 	}
 
 	async execute(config: TaskConfig, block: ToolUse): Promise<ToolResponse> {
@@ -52,9 +52,9 @@ export class WebFetchToolHandler implements IFullyManagedTool {
 			const provider = (currentMode === "plan" ? apiConfig.planModeApiProvider : apiConfig.actModeApiProvider) as string
 
 			// Check if Web tools are enabled (both user setting and feature flag)
-			const clineWebToolsEnabled = config.services.stateManager.getGlobalSettingsKey("clineWebToolsEnabled")
+			const kodyWebToolsEnabled = config.services.stateManager.getGlobalSettingsKey("kodyWebToolsEnabled")
 			const featureFlagEnabled = featureFlagsService.getWebtoolsEnabled()
-			if (provider !== "cline" || !clineWebToolsEnabled || !featureFlagEnabled) {
+			if (provider !== "kody" || !kodyWebToolsEnabled || !featureFlagEnabled) {
 				return formatResponse.toolError("Web tools are currently disabled.")
 			}
 
@@ -70,7 +70,7 @@ export class WebFetchToolHandler implements IFullyManagedTool {
 			config.taskState.consecutiveMistakeCount = 0
 
 			// Create message for approval
-			const sharedMessageProps: ClineSayTool = {
+			const sharedMessageProps: KodySayTool = {
 				tool: "webFetch",
 				path: url,
 				content: `Fetching URL: ${url}`,
@@ -136,7 +136,7 @@ export class WebFetchToolHandler implements IFullyManagedTool {
 			}
 
 			// Execute the actual fetch
-			const baseUrl = ClineEnv.config().apiBaseUrl
+			const baseUrl = KodyEnv.config().apiBaseUrl
 			const authToken = await AuthService.getInstance().getAuthToken()
 
 			if (!authToken) {
@@ -154,7 +154,7 @@ export class WebFetchToolHandler implements IFullyManagedTool {
 						Authorization: `Bearer ${authToken}`,
 						"Content-Type": "application/json",
 						"X-Task-ID": config.ulid || "",
-						...(await buildClineExtraHeaders()),
+						...(await buildKodyExtraHeaders()),
 					},
 					timeout: 15000,
 					...getAxiosSettings(),

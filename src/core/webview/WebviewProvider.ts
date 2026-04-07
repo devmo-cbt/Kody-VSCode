@@ -3,7 +3,7 @@ import { Controller } from "@core/controller/index"
 import axios from "axios"
 import { readFile } from "fs/promises"
 import { HostProvider } from "@/hosts/host-provider"
-import { ClineExtensionContext } from "@/shared/cline"
+import { KodyExtensionContext } from "@/shared/kody"
 import { ShowMessageType } from "@/shared/proto/host/window"
 import { Logger } from "@/shared/services/Logger"
 import { getNonce } from "./getNonce"
@@ -12,7 +12,7 @@ export abstract class WebviewProvider {
 	private static instance: WebviewProvider | null = null
 	controller: Controller
 
-	constructor(readonly context: ClineExtensionContext) {
+	constructor(readonly context: KodyExtensionContext) {
 		WebviewProvider.instance = this
 
 		// Create controller with cache service
@@ -111,12 +111,12 @@ export abstract class WebviewProvider {
 				<link rel="stylesheet" type="text/css" href="${stylesUrl}">
 				<link href="${codiconsUrl}" rel="stylesheet" />
 				<meta http-equiv="Content-Security-Policy" content="default-src 'none';
-					connect-src https://*.posthog.com https://*.cline.bot; 
+					connect-src https://*.posthog.com https://*.kody.bot; 
 					font-src ${this.getCspSource()} data:; 
 					style-src ${this.getCspSource()} 'unsafe-inline'; 
 					img-src ${this.getCspSource()} https: data:; 
 					script-src 'nonce-${nonce}' 'unsafe-eval';">
-				<title>Cline</title>
+				<title>Kody</title>
 			</head>
 			<body>
 				<noscript>You need to enable JavaScript to run this app.</noscript>
@@ -173,7 +173,7 @@ export abstract class WebviewProvider {
 				HostProvider.window.showMessage({
 					type: ShowMessageType.ERROR,
 					message:
-						"Cline: Local webview dev server is not running, HMR will not work. Please run 'npm run dev:webview' before launching the extension to enable HMR. Using bundled assets.",
+						"Kody: Local webview dev server is not running, HMR will not work. Please run 'npm run dev:webview' before launching the extension to enable HMR. Using bundled assets.",
 				})
 			}
 
@@ -216,7 +216,7 @@ export abstract class WebviewProvider {
 					<meta http-equiv="Content-Security-Policy" content="${csp.join("; ")}">
 					<link rel="stylesheet" type="text/css" href="${stylesUrl}">
 					<link href="${codiconsUrl}" rel="stylesheet" />
-					<title>Cline</title>
+					<title>Kody</title>
 				</head>
 				<body>
 					<div id="root"></div>

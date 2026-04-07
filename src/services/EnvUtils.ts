@@ -3,12 +3,12 @@ import * as path from "path"
 import { isMultiRootWorkspace } from "@/core/workspace/utils/workspace-detection"
 import { HostProvider } from "@/hosts/host-provider"
 import { ExtensionRegistryInfo } from "@/registry"
-import { EmptyRequest } from "@/shared/proto/cline/common"
 import { GetWorkspacePathsRequest } from "@/shared/proto/index.host"
+import { EmptyRequest } from "@/shared/proto/kody/common"
 import { Logger } from "@/shared/services/Logger"
 
 // Canonical header names for extra client/host context
-export const ClineHeaders = {
+export const KodyHeaders = {
 	PLATFORM: "X-PLATFORM",
 	PLATFORM_VERSION: "X-PLATFORM-VERSION",
 	CLIENT_VERSION: "X-CLIENT-VERSION",
@@ -16,7 +16,7 @@ export const ClineHeaders = {
 	CORE_VERSION: "X-CORE-VERSION",
 	IS_MULTIROOT: "X-IS-MULTIROOT",
 } as const
-export type ClineHeaderName = (typeof ClineHeaders)[keyof typeof ClineHeaders]
+export type KodyHeaderName = (typeof KodyHeaders)[keyof typeof KodyHeaders]
 
 export function buildExternalBasicHeaders(): Record<string, string> {
 	return {
@@ -25,35 +25,35 @@ export function buildExternalBasicHeaders(): Record<string, string> {
 	}
 }
 
-export async function buildBasicClineHeaders(): Promise<Record<string, string>> {
+export async function buildBasicKodyHeaders(): Promise<Record<string, string>> {
 	const headers: Record<string, string> = buildExternalBasicHeaders()
 	try {
 		const host = await HostProvider.env.getHostVersion(EmptyRequest.create({}))
-		headers[ClineHeaders.PLATFORM] = host.platform || "unknown"
-		headers[ClineHeaders.PLATFORM_VERSION] = host.version || "unknown"
-		headers[ClineHeaders.CLIENT_TYPE] = host.clineType || "unknown"
-		headers[ClineHeaders.CLIENT_VERSION] = host.clineVersion || "unknown"
+		headers[KodyHeaders.PLATFORM] = host.platform || "unknown"
+		headers[KodyHeaders.PLATFORM_VERSION] = host.version || "unknown"
+		headers[KodyHeaders.CLIENT_TYPE] = host.kodyType || "unknown"
+		headers[KodyHeaders.CLIENT_VERSION] = host.kodyVersion || "unknown"
 	} catch (error) {
 		Logger.log("Failed to get IDE/platform info via HostBridge EnvService.getHostVersion", error)
-		headers[ClineHeaders.PLATFORM] = "unknown"
-		headers[ClineHeaders.PLATFORM_VERSION] = "unknown"
-		headers[ClineHeaders.CLIENT_TYPE] = "unknown"
-		headers[ClineHeaders.CLIENT_VERSION] = "unknown"
+		headers[KodyHeaders.PLATFORM] = "unknown"
+		headers[KodyHeaders.PLATFORM_VERSION] = "unknown"
+		headers[KodyHeaders.CLIENT_TYPE] = "unknown"
+		headers[KodyHeaders.CLIENT_VERSION] = "unknown"
 	}
-	headers[ClineHeaders.CORE_VERSION] = ExtensionRegistryInfo.version
+	headers[KodyHeaders.CORE_VERSION] = ExtensionRegistryInfo.version
 
 	return headers
 }
 
-export async function buildClineExtraHeaders(): Promise<Record<string, string>> {
-	const headers = await buildBasicClineHeaders()
+export async function buildKodyExtraHeaders(): Promise<Record<string, string>> {
+	const headers = await buildBasicKodyHeaders()
 
 	try {
 		const isMultiRoot = await isMultiRootWorkspace()
-		headers[ClineHeaders.IS_MULTIROOT] = isMultiRoot ? "true" : "false"
+		headers[KodyHeaders.IS_MULTIROOT] = isMultiRoot ? "true" : "false"
 	} catch (error) {
 		Logger.log("Failed to detect multi-root workspace", error)
-		headers[ClineHeaders.IS_MULTIROOT] = "false"
+		headers[KodyHeaders.IS_MULTIROOT] = "false"
 	}
 
 	try {

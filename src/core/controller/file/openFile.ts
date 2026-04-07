@@ -1,6 +1,6 @@
 import { StateManager } from "@core/storage/StateManager"
 import { openFile as openFileIntegration } from "@integrations/misc/open-file"
-import { Empty, StringRequest } from "@shared/proto/cline/common"
+import { Empty, StringRequest } from "@shared/proto/kody/common"
 import { REMOTE_URI_SCHEME } from "@shared/remote-config/constants"
 import { writeFile } from "@utils/fs"
 import * as os from "os"
@@ -57,7 +57,7 @@ async function openRemoteFile(uri: string): Promise<void> {
 
 	// Sanitize the name for use in filename (replace invalid characters)
 	const sanitizedName = name.replace(/[<>:"/\\|?*]/g, "_")
-	const tempPath = path.join(os.tmpdir(), `cline-remote-${type}-${sanitizedName}.md`)
+	const tempPath = path.join(os.tmpdir(), `kody-remote-${type}-${sanitizedName}.md`)
 
 	await writeFile(tempPath, content)
 	await openFileIntegration(tempPath)

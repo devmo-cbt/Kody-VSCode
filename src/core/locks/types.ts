@@ -10,7 +10,7 @@ export interface LockRow {
 
 export interface SqliteLockManagerOptions {
 	dbPath: string
-	instanceAddress: string // cline core address
+	instanceAddress: string // kody core address
 }
 
 export interface FolderLockOptions {

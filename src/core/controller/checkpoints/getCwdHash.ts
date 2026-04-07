@@ -1,5 +1,5 @@
-import { PathHashMap } from "@shared/proto/cline/checkpoints"
-import { StringArrayRequest } from "@shared/proto/cline/common"
+import { PathHashMap } from "@shared/proto/kody/checkpoints"
+import { StringArrayRequest } from "@shared/proto/kody/common"
 import { hashWorkingDir } from "@/integrations/checkpoints/CheckpointUtils"
 import { Controller } from ".."
 

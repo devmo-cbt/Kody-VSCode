@@ -3,10 +3,10 @@ import { formatResponse } from "@core/prompts/responses"
 import { WorkspacePathAdapter } from "@core/workspace/WorkspacePathAdapter"
 import { showApprovalNotification, showSystemNotification } from "@integrations/notifications"
 import { COMMAND_REQ_APP_STRING } from "@shared/combineCommandSequences"
-import { ClineAsk } from "@shared/ExtensionMessage"
+import { KodyAsk } from "@shared/ExtensionMessage"
 import { arePathsEqual } from "@utils/path"
 import { telemetryService } from "@/services/telemetry"
-import { ClineDefaultTool } from "@/shared/tools"
+import { KodyDefaultTool } from "@/shared/tools"
 import type { ToolResponse } from "../../index"
 import type { IFullyManagedTool } from "../ToolExecutorCoordinator"
 import type { ToolValidator } from "../ToolValidator"
@@ -56,7 +56,7 @@ export function resolveCommandTimeoutSeconds(
 }
 
 export class ExecuteCommandToolHandler implements IFullyManagedTool {
-	readonly name = ClineDefaultTool.BASH
+	readonly name = KodyDefaultTool.BASH
 
 	constructor(_validator: ToolValidator) {}
 
@@ -80,7 +80,7 @@ export class ExecuteCommandToolHandler implements IFullyManagedTool {
 			return
 		}
 		await uiHelpers
-			.ask("command" as ClineAsk, uiHelpers.removeClosingTag(block, "command", command), block.partial)
+			.ask("command" as KodyAsk, uiHelpers.removeClosingTag(block, "command", command), block.partial)
 			.catch(() => {})
 	}
 
@@ -180,13 +180,13 @@ export class ExecuteCommandToolHandler implements IFullyManagedTool {
 			return formatResponse.toolError(formatResponse.permissionDeniedError(errorMessage))
 		}
 
-		// Check clineignore validation for command
-		const ignoredFileAttemptedToAccess = config.services.clineIgnoreController.validateCommand(actualCommand)
+		// Check kodyignore validation for command
+		const ignoredFileAttemptedToAccess = config.services.kodyIgnoreController.validateCommand(actualCommand)
 		if (ignoredFileAttemptedToAccess) {
 			if (!config.isSubagentExecution) {
-				await config.callbacks.say("clineignore_error", ignoredFileAttemptedToAccess)
+				await config.callbacks.say("kodyignore_error", ignoredFileAttemptedToAccess)
 			}
-			return formatResponse.toolError(formatResponse.clineIgnoreError(ignoredFileAttemptedToAccess))
+			return formatResponse.toolError(formatResponse.kodyIgnoreError(ignoredFileAttemptedToAccess))
 		}
 
 		let didAutoApprove = false

@@ -1,10 +1,10 @@
 import { ModelFamily } from "@/shared/prompts"
-import { ClineDefaultTool } from "@/shared/tools"
-import type { ClineToolSpec } from "../spec"
+import { KodyDefaultTool } from "@/shared/tools"
+import type { KodyToolSpec } from "../spec"
 
-const id = ClineDefaultTool.GENERATE_EXPLANATION
+const id = KodyDefaultTool.GENERATE_EXPLANATION
 
-const GENERIC: ClineToolSpec = {
+const GENERIC: KodyToolSpec = {
 	variant: ModelFamily.GENERIC,
 	id,
 	name: "generate_explanation",

@@ -1,3 +1,3 @@
-@.clinerules/general.md
-@.clinerules/network.md
-@.clinerules/cli.md
+@.kodyrules/general.md
+@.kodyrules/network.md
+@.kodyrules/cli.md

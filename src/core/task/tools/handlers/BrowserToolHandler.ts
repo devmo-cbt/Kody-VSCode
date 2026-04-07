@@ -1,5 +1,5 @@
-import { BrowserAction, BrowserActionResult, browserActions, ClineSayBrowserAction } from "@shared/ExtensionMessage"
-import { ClineDefaultTool } from "@/shared/tools"
+import { BrowserAction, BrowserActionResult, browserActions, KodySayBrowserAction } from "@shared/ExtensionMessage"
+import { KodyDefaultTool } from "@/shared/tools"
 import { ToolUse } from "../../../assistant-message"
 import { formatResponse } from "../../../prompts/responses"
 import { ToolResponse } from "../.."
@@ -10,7 +10,7 @@ import type { StronglyTypedUIHelpers } from "../types/UIHelpers"
 import { ToolResultUtils } from "../utils/ToolResultUtils"
 
 export class BrowserToolHandler implements IFullyManagedTool {
-	readonly name = ClineDefaultTool.BROWSER
+	readonly name = KodyDefaultTool.BROWSER
 
 	getDescription(block: ToolUse): string {
 		return `[${block.name} for '${block.params.action}']`
@@ -51,7 +51,7 @@ export class BrowserToolHandler implements IFullyManagedTool {
 					action: action as BrowserAction,
 					coordinate: uiHelpers.removeClosingTag(block, "coordinate", coordinate),
 					text: uiHelpers.removeClosingTag(block, "text", text),
-				} satisfies ClineSayBrowserAction),
+				} satisfies KodySayBrowserAction),
 				undefined,
 				undefined,
 				block.partial,
@@ -149,7 +149,7 @@ export class BrowserToolHandler implements IFullyManagedTool {
 						action: action as BrowserAction,
 						coordinate,
 						text,
-					} satisfies ClineSayBrowserAction),
+					} satisfies KodySayBrowserAction),
 					undefined,
 					undefined,
 					false,

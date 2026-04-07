@@ -1,6 +1,6 @@
 import { ModelFamily } from "@/shared/prompts"
 import { Logger } from "@/shared/services/Logger"
-import { ClineDefaultTool } from "@/shared/tools"
+import { KodyDefaultTool } from "@/shared/tools"
 import { isGLMModelFamily } from "@/utils/model-utils"
 import { SystemPromptSection } from "../../templates/placeholders"
 import { createVariant } from "../variant-builder"
@@ -36,24 +36,24 @@ export const config = createVariant(ModelFamily.GLM)
 		SystemPromptSection.SKILLS,
 	)
 	.tools(
-		ClineDefaultTool.BASH,
-		ClineDefaultTool.FILE_READ,
-		ClineDefaultTool.FILE_NEW,
-		ClineDefaultTool.FILE_EDIT,
-		ClineDefaultTool.SEARCH,
-		ClineDefaultTool.LIST_FILES,
-		ClineDefaultTool.LIST_CODE_DEF,
-		ClineDefaultTool.BROWSER,
-		ClineDefaultTool.MCP_USE,
-		ClineDefaultTool.MCP_ACCESS,
-		ClineDefaultTool.ASK,
-		ClineDefaultTool.ATTEMPT,
-		ClineDefaultTool.PLAN_MODE,
-		ClineDefaultTool.MCP_DOCS,
-		ClineDefaultTool.TODO,
-		ClineDefaultTool.GENERATE_EXPLANATION,
-		ClineDefaultTool.USE_SKILL,
-		ClineDefaultTool.USE_SUBAGENTS,
+		KodyDefaultTool.BASH,
+		KodyDefaultTool.FILE_READ,
+		KodyDefaultTool.FILE_NEW,
+		KodyDefaultTool.FILE_EDIT,
+		KodyDefaultTool.SEARCH,
+		KodyDefaultTool.LIST_FILES,
+		KodyDefaultTool.LIST_CODE_DEF,
+		KodyDefaultTool.BROWSER,
+		KodyDefaultTool.MCP_USE,
+		KodyDefaultTool.MCP_ACCESS,
+		KodyDefaultTool.ASK,
+		KodyDefaultTool.ATTEMPT,
+		KodyDefaultTool.PLAN_MODE,
+		KodyDefaultTool.MCP_DOCS,
+		KodyDefaultTool.TODO,
+		KodyDefaultTool.GENERATE_EXPLANATION,
+		KodyDefaultTool.USE_SKILL,
+		KodyDefaultTool.USE_SUBAGENTS,
 	)
 	.placeholders({
 		MODEL_FAMILY: ModelFamily.GLM,

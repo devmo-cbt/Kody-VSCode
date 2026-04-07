@@ -4,7 +4,7 @@ import { parseSourceCodeForDefinitionsTopLevel } from "@services/tree-sitter"
 import { getReadablePath, isLocatedInWorkspace } from "@utils/path"
 import { formatResponse } from "@/core/prompts/responses"
 import { telemetryService } from "@/services/telemetry"
-import { ClineDefaultTool } from "@/shared/tools"
+import { KodyDefaultTool } from "@/shared/tools"
 import type { ToolResponse } from "../../index"
 import { showNotificationForApproval } from "../../utils"
 import type { IFullyManagedTool } from "../ToolExecutorCoordinator"
@@ -14,7 +14,7 @@ import type { StronglyTypedUIHelpers } from "../types/UIHelpers"
 import { ToolResultUtils } from "../utils/ToolResultUtils"
 
 export class ListCodeDefinitionNamesToolHandler implements IFullyManagedTool {
-	readonly name = ClineDefaultTool.LIST_CODE_DEF
+	readonly name = KodyDefaultTool.LIST_CODE_DEF
 
 	constructor(private validator: ToolValidator) {}
 
@@ -76,7 +76,7 @@ export class ListCodeDefinitionNamesToolHandler implements IFullyManagedTool {
 			const pathResult = resolveWorkspacePath(config, relDirPath!, "ListCodeDefinitionNamesToolHandler.execute")
 			;({ absolutePath, displayPath } =
 				typeof pathResult === "string" ? { absolutePath: pathResult, displayPath: relDirPath! } : pathResult)
-			result = await parseSourceCodeForDefinitionsTopLevel(absolutePath, config.services.clineIgnoreController)
+			result = await parseSourceCodeForDefinitionsTopLevel(absolutePath, config.services.kodyIgnoreController)
 		} catch (error) {
 			config.taskState.consecutiveMistakeCount++
 			const errorMessage = error instanceof Error ? error.message : String(error)

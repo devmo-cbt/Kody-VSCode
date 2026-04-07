@@ -4,13 +4,13 @@ import { nanoid } from "nanoid"
 import { McpHub } from "@/services/mcp/McpHub"
 import { CLINE_MCP_TOOL_IDENTIFIER } from "@/shared/mcp"
 import {
-	ClineAssistantRedactedThinkingBlock,
-	ClineAssistantThinkingBlock,
-	ClineAssistantToolUseBlock,
-	ClineReasoningDetailParam,
+	KodyAssistantRedactedThinkingBlock,
+	KodyAssistantThinkingBlock,
+	KodyAssistantToolUseBlock,
+	KodyReasoningDetailParam,
 } from "@/shared/messages/content"
 import { Session } from "@/shared/services/Session"
-import { ClineDefaultTool } from "@/shared/tools"
+import { KodyDefaultTool } from "@/shared/tools"
 
 export interface PendingToolUse {
 	id: string
@@ -42,8 +42,8 @@ export interface PendingReasoning {
 	id?: string
 	content: string
 	signature: string
-	redactedThinking: ClineAssistantRedactedThinkingBlock[]
-	summary: unknown[] | ClineReasoningDetailParam[]
+	redactedThinking: KodyAssistantRedactedThinkingBlock[]
+	summary: unknown[] | KodyReasoningDetailParam[]
 }
 
 const ESCAPE_MAP: Record<string, string> = {
@@ -87,7 +87,7 @@ export class StreamResponseHandler {
 }
 
 /**
- * Handles streaming native tool use blocks and converts them to ClineAssistantToolUseBlock format
+ * Handles streaming native tool use blocks and converts them to KodyAssistantToolUseBlock format
  */
 class ToolUseHandler {
 	private pendingToolUses = new Map<string, PendingToolUse>()
@@ -120,7 +120,7 @@ class ToolUseHandler {
 		}
 	}
 
-	getFinalizedToolUse(id: string): ClineAssistantToolUseBlock | undefined {
+	getFinalizedToolUse(id: string): KodyAssistantToolUseBlock | undefined {
 		const pending = this.pendingToolUses.get(id)
 		if (!pending?.name) {
 			return undefined
@@ -147,8 +147,8 @@ class ToolUseHandler {
 		}
 	}
 
-	getAllFinalizedToolUses(summary?: ClineAssistantToolUseBlock["reasoning_details"]): ClineAssistantToolUseBlock[] {
-		const results: ClineAssistantToolUseBlock[] = []
+	getAllFinalizedToolUses(summary?: KodyAssistantToolUseBlock["reasoning_details"]): KodyAssistantToolUseBlock[] {
+		const results: KodyAssistantToolUseBlock[] = []
 		for (const id of this.pendingToolUses.keys()) {
 			const toolUse = this.getFinalizedToolUse(id)
 			if (toolUse) {
@@ -190,7 +190,7 @@ class ToolUseHandler {
 				const [key, toolName] = pending.name.split(CLINE_MCP_TOOL_IDENTIFIER)
 				results.push({
 					type: "tool_use",
-					name: ClineDefaultTool.MCP_USE,
+					name: KodyDefaultTool.MCP_USE,
 					params: {
 						server_name: McpHub.getMcpServerByKey(key),
 						tool_name: toolName,
@@ -210,7 +210,7 @@ class ToolUseHandler {
 				}
 				results.push({
 					type: "tool_use",
-					name: pending.name as ClineDefaultTool,
+					name: pending.name as KodyDefaultTool,
 					params: params as any,
 					partial: true,
 					signature: pending.signature,
@@ -312,7 +312,7 @@ class ReasoningHandler {
 		}
 	}
 
-	getCurrentReasoning(): ClineAssistantThinkingBlock | null {
+	getCurrentReasoning(): KodyAssistantThinkingBlock | null {
 		if (!this.pendingReasoning) {
 			return null
 		}
@@ -341,7 +341,7 @@ class ReasoningHandler {
 		}
 	}
 
-	getRedactedThinking(): ClineAssistantRedactedThinkingBlock[] {
+	getRedactedThinking(): KodyAssistantRedactedThinkingBlock[] {
 		return this.pendingReasoning?.redactedThinking || []
 	}
 

@@ -1,20 +1,20 @@
 // Core content types
 export type {
-	ClineAssistantContent,
-	ClineAssistantRedactedThinkingBlock,
-	ClineAssistantThinkingBlock,
-	ClineAssistantToolUseBlock,
-	ClineContent,
-	ClineDocumentContentBlock,
-	ClineImageContentBlock,
-	ClineMessageRole,
-	ClinePromptInputContent,
-	ClineReasoningDetailParam,
-	ClineStorageMessage,
-	ClineTextContentBlock,
-	ClineToolResponseContent,
-	ClineUserContent,
-	ClineUserToolResultContentBlock,
+	KodyAssistantContent,
+	KodyAssistantRedactedThinkingBlock,
+	KodyAssistantThinkingBlock,
+	KodyAssistantToolUseBlock,
+	KodyContent,
+	KodyDocumentContentBlock,
+	KodyImageContentBlock,
+	KodyMessageRole,
+	KodyPromptInputContent,
+	KodyReasoningDetailParam,
+	KodyStorageMessage,
+	KodyTextContentBlock,
+	KodyToolResponseContent,
+	KodyUserContent,
+	KodyUserToolResultContentBlock,
 } from "./content"
-export { cleanContentBlock, convertClineStorageToAnthropicMessage, REASONING_DETAILS_PROVIDERS } from "./content"
-export type { ClineMessageMetricsInfo, ClineMessageModelInfo } from "./metrics"
+export { cleanContentBlock, convertKodyStorageToAnthropicMessage, REASONING_DETAILS_PROVIDERS } from "./content"
+export type { KodyMessageMetricsInfo, KodyMessageModelInfo } from "./metrics"

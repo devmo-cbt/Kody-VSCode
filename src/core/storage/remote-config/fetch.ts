@@ -1,12 +1,12 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios"
 import { Controller } from "@/core/controller"
-import { buildBasicClineHeaders } from "@/services/EnvUtils"
+import { buildBasicKodyHeaders } from "@/services/EnvUtils"
 import { getAxiosSettings } from "@/shared/net"
 import { Logger } from "@/shared/services/Logger"
 import { ConfiguredAPIKeys } from "@/shared/storage/state-keys"
-import { ClineEnv } from "../../../config"
+import { KodyEnv } from "../../../config"
 import { AuthService } from "../../../services/auth/AuthService"
-import { CLINE_API_ENDPOINT } from "../../../shared/cline/api"
+import { CLINE_API_ENDPOINT } from "../../../shared/kody/api"
 import { APIKeySchema, type APIKeySettings, RemoteConfig, RemoteConfigSchema } from "../../../shared/remote-config/schema"
 import { deleteRemoteConfigFromCache, readRemoteConfigFromCache, writeRemoteConfigToCache } from "../disk"
 import { applyRemoteConfig, clearRemoteConfig, isRemoteConfigEnabled } from "./utils"
@@ -29,7 +29,7 @@ function parseApiKeys(value: string): APIKeySettings {
 }
 
 /**
- * Helper function to make authenticated requests to the Cline API
+ * Helper function to make authenticated requests to the Kody API
  * @param endpoint The API endpoint path (with {id} placeholder if needed)
  * @param organizationId The organization ID to replace in the endpoint
  * @returns The response data on success
@@ -41,19 +41,19 @@ async function makeAuthenticatedRequest<T>(endpoint: string, organizationId: str
 	// Get authentication token
 	const authToken = await authService.getAuthToken()
 	if (!authToken) {
-		throw new Error("No Cline account auth token found")
+		throw new Error("No Kody account auth token found")
 	}
 
 	// Construct URL by replacing {id} placeholder with organizationId
 	const apiEndpoint = endpoint.replace("{id}", organizationId)
-	const url = new URL(apiEndpoint, ClineEnv.config().apiBaseUrl).toString()
+	const url = new URL(apiEndpoint, KodyEnv.config().apiBaseUrl).toString()
 
 	// Make authenticated request
 	const requestConfig: AxiosRequestConfig = {
 		headers: {
 			Authorization: `Bearer ${authToken}`,
 			"Content-Type": "application/json",
-			...(await buildBasicClineHeaders()),
+			...(await buildBasicKodyHeaders()),
 		},
 		...getAxiosSettings(),
 	}

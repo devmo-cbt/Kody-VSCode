@@ -1,12 +1,12 @@
-import { EmptyRequest } from "@shared/proto/cline/common"
-import { NewTaskRequest } from "@shared/proto/cline/task"
-import type { MergeWorktreeResult, Worktree as WorktreeProto } from "@shared/proto/cline/worktree"
+import { EmptyRequest } from "@shared/proto/kody/common"
+import { NewTaskRequest } from "@shared/proto/kody/task"
+import type { MergeWorktreeResult, Worktree as WorktreeProto } from "@shared/proto/kody/worktree"
 import {
 	CreateWorktreeIncludeRequest,
 	DeleteWorktreeRequest,
 	MergeWorktreeRequest,
 	SwitchWorktreeRequest,
-} from "@shared/proto/cline/worktree"
+} from "@shared/proto/kody/worktree"
 import { VSCodeButton, VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 import { AlertCircle, Check, ExternalLink, FolderOpen, GitBranch, GitMerge, Loader2, Plus, Trash2, X } from "lucide-react"
 import { memo, useCallback, useEffect, useState } from "react"
@@ -217,7 +217,7 @@ const WorktreesView = ({ onDone }: WorktreesViewProps) => {
 	}, [mergeWorktree, getMainBranch, deleteAfterMerge, loadWorktrees])
 
 	// Ask Kody to resolve conflicts
-	const handleAskClineToResolve = useCallback(async () => {
+	const handleAskKodyToResolve = useCallback(async () => {
 		if (!mergeResult || !mergeResult.hasConflicts) return
 
 		const conflictList = mergeResult.conflictingFiles.join(", ")
@@ -254,7 +254,7 @@ Please help me resolve these merge conflicts, then complete the merge, and delet
 					their own windows so Kody can work on multiple tasks in parallel.{" "}
 					<a
 						className="text-[var(--vscode-textLink-foreground)] hover:text-[var(--vscode-textLink-activeForeground)]"
-						href="https://docs.cline.bot/features/worktrees"
+						href="https://docs.kody.bot/features/worktrees"
 						rel="noopener noreferrer"
 						style={{ fontSize: "inherit" }}
 						target="_blank">
@@ -276,7 +276,7 @@ Please help me resolve these merge conflicts, then complete the merge, and delet
 								.worktreeinclude detected.{" "}
 								<a
 									className="text-[var(--vscode-textLink-foreground)] hover:text-[var(--vscode-textLink-activeForeground)]"
-									href="https://docs.cline.bot/features/worktrees#worktreeinclude"
+									href="https://docs.kody.bot/features/worktrees#worktreeinclude"
 									rel="noopener noreferrer"
 									style={{ fontSize: "inherit" }}
 									target="_blank">
@@ -297,7 +297,7 @@ Please help me resolve these merge conflicts, then complete the merge, and delet
 									to new worktrees, so you don't have to reinstall dependencies.{" "}
 									<a
 										className="text-[var(--vscode-textLink-foreground)] hover:text-[var(--vscode-textLink-activeForeground)]"
-										href="https://docs.cline.bot/features/worktrees#worktreeinclude"
+										href="https://docs.kody.bot/features/worktrees#worktreeinclude"
 										rel="noopener noreferrer"
 										style={{ fontSize: "inherit" }}
 										target="_blank">
@@ -573,7 +573,7 @@ Please help me resolve these merge conflicts, then complete the merge, and delet
 								</div>
 
 								<div className="flex flex-col gap-2">
-									<VSCodeButton onClick={handleAskClineToResolve} style={{ width: "100%" }}>
+									<VSCodeButton onClick={handleAskKodyToResolve} style={{ width: "100%" }}>
 										Ask Kody to Resolve
 									</VSCodeButton>
 									<VSCodeButton appearance="secondary" onClick={closeMergeModal} style={{ width: "100%" }}>

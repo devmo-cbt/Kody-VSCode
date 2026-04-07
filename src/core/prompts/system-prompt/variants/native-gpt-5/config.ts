@@ -1,13 +1,7 @@
-import {
-	isGptOssModelFamily,
-	isGPT5ModelFamily,
-	isGPT51Model,
-	isGPT52Model,
-	isNextGenModelProvider,
-} from "@utils/model-utils"
+import { isGPT5ModelFamily, isGPT51Model, isGPT52Model, isGptOssModelFamily, isNextGenModelProvider } from "@utils/model-utils"
 import { ModelFamily } from "@/shared/prompts"
 import { Logger } from "@/shared/services/Logger"
-import { ClineDefaultTool } from "@/shared/tools"
+import { KodyDefaultTool } from "@/shared/tools"
 import { SystemPromptSection } from "../../templates/placeholders"
 import { createVariant } from "../variant-builder"
 import { validateVariant } from "../variant-validator"
@@ -63,27 +57,27 @@ export const config = createVariant(ModelFamily.NATIVE_GPT_5)
 		SystemPromptSection.SKILLS,
 	)
 	.tools(
-		ClineDefaultTool.BASH,
-		ClineDefaultTool.FILE_READ,
+		KodyDefaultTool.BASH,
+		KodyDefaultTool.FILE_READ,
 		// Should disable FILE_NEW and FILE_EDIT when enabled
-		ClineDefaultTool.APPLY_PATCH,
-		// ClineDefaultTool.FILE_NEW, // Replaced by APPLY_PATCH
-		// ClineDefaultTool.FILE_EDIT, // Replaced by APPLY_PATCH
-		ClineDefaultTool.SEARCH,
-		ClineDefaultTool.LIST_FILES,
-		ClineDefaultTool.LIST_CODE_DEF,
-		ClineDefaultTool.BROWSER,
-		ClineDefaultTool.WEB_FETCH,
-		ClineDefaultTool.WEB_SEARCH,
-		ClineDefaultTool.MCP_ACCESS,
-		ClineDefaultTool.ASK,
-		ClineDefaultTool.ATTEMPT,
-		ClineDefaultTool.PLAN_MODE,
-		ClineDefaultTool.MCP_DOCS,
-		ClineDefaultTool.TODO,
-		ClineDefaultTool.GENERATE_EXPLANATION,
-		ClineDefaultTool.USE_SKILL,
-		ClineDefaultTool.USE_SUBAGENTS,
+		KodyDefaultTool.APPLY_PATCH,
+		// KodyDefaultTool.FILE_NEW, // Replaced by APPLY_PATCH
+		// KodyDefaultTool.FILE_EDIT, // Replaced by APPLY_PATCH
+		KodyDefaultTool.SEARCH,
+		KodyDefaultTool.LIST_FILES,
+		KodyDefaultTool.LIST_CODE_DEF,
+		KodyDefaultTool.BROWSER,
+		KodyDefaultTool.WEB_FETCH,
+		KodyDefaultTool.WEB_SEARCH,
+		KodyDefaultTool.MCP_ACCESS,
+		KodyDefaultTool.ASK,
+		KodyDefaultTool.ATTEMPT,
+		KodyDefaultTool.PLAN_MODE,
+		KodyDefaultTool.MCP_DOCS,
+		KodyDefaultTool.TODO,
+		KodyDefaultTool.GENERATE_EXPLANATION,
+		KodyDefaultTool.USE_SKILL,
+		KodyDefaultTool.USE_SUBAGENTS,
 	)
 	.placeholders({
 		MODEL_FAMILY: ModelFamily.NATIVE_GPT_5,

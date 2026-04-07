@@ -5,8 +5,8 @@ import { getWorkspaceBasename, resolveWorkspacePath } from "@core/workspace"
 import { extractFileContent, type FileContentResult } from "@integrations/misc/extract-file-content"
 import { arePathsEqual, getReadablePath, isLocatedInWorkspace } from "@utils/path"
 import { telemetryService } from "@/services/telemetry"
-import { ClineSayTool } from "@/shared/ExtensionMessage"
-import { ClineDefaultTool } from "@/shared/tools"
+import { KodySayTool } from "@/shared/ExtensionMessage"
+import { KodyDefaultTool } from "@/shared/tools"
 import type { ToolResponse } from "../../index"
 import { showNotificationForApproval } from "../../utils"
 import type { IFullyManagedTool } from "../ToolExecutorCoordinator"
@@ -16,7 +16,7 @@ import type { StronglyTypedUIHelpers } from "../types/UIHelpers"
 import { ToolResultUtils } from "../utils/ToolResultUtils"
 
 export class ReadFileToolHandler implements IFullyManagedTool {
-	readonly name = ClineDefaultTool.FILE_READ
+	readonly name = KodyDefaultTool.FILE_READ
 
 	constructor(private validator: ToolValidator) {}
 
@@ -67,13 +67,13 @@ export class ReadFileToolHandler implements IFullyManagedTool {
 			return await config.callbacks.sayAndCreateMissingParamError(this.name, "path")
 		}
 
-		// Check clineignore access
-		const accessValidation = this.validator.checkClineIgnorePath(relPath!)
+		// Check kodyignore access
+		const accessValidation = this.validator.checkKodyIgnorePath(relPath!)
 		if (!accessValidation.ok) {
 			if (!config.isSubagentExecution) {
-				await config.callbacks.say("clineignore_error", relPath)
+				await config.callbacks.say("kodyignore_error", relPath)
 			}
-			return formatResponse.toolError(formatResponse.clineIgnoreError(relPath!))
+			return formatResponse.toolError(formatResponse.kodyIgnoreError(relPath!))
 		}
 
 		// Resolve the absolute path based on multi-workspace configuration
@@ -96,7 +96,7 @@ export class ReadFileToolHandler implements IFullyManagedTool {
 			path: getReadablePath(config.cwd, displayPath),
 			content: absolutePath,
 			operationIsLocatedInWorkspace: await isLocatedInWorkspace(relPath!),
-		} satisfies ClineSayTool
+		} satisfies KodySayTool
 
 		const completeMessage = JSON.stringify(sharedMessageProps)
 

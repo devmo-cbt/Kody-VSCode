@@ -1,6 +1,6 @@
 import { synchronizeRuleToggles } from "@core/context/instructions/user-instructions/rule-helpers"
 import { ensureWorkflowsDirectoryExists, GlobalFileNames } from "@core/storage/disk"
-import { ClineRulesToggles } from "@shared/cline-rules"
+import { KodyRulesToggles } from "@shared/kody-rules"
 import path from "path"
 import { Controller } from "@/core/controller"
 
@@ -11,13 +11,13 @@ export async function refreshWorkflowToggles(
 	controller: Controller,
 	workingDirectory: string,
 ): Promise<{
-	globalWorkflowToggles: ClineRulesToggles
-	localWorkflowToggles: ClineRulesToggles
+	globalWorkflowToggles: KodyRulesToggles
+	localWorkflowToggles: KodyRulesToggles
 }> {
 	// Global workflows
 	const globalWorkflowToggles = controller.stateManager.getGlobalSettingsKey("globalWorkflowToggles")
-	const globalClineWorkflowsFilePath = await ensureWorkflowsDirectoryExists()
-	const updatedGlobalWorkflowToggles = await synchronizeRuleToggles(globalClineWorkflowsFilePath, globalWorkflowToggles)
+	const globalKodyWorkflowsFilePath = await ensureWorkflowsDirectoryExists()
+	const updatedGlobalWorkflowToggles = await synchronizeRuleToggles(globalKodyWorkflowsFilePath, globalWorkflowToggles)
 	controller.stateManager.setGlobalState("globalWorkflowToggles", updatedGlobalWorkflowToggles)
 
 	const workflowRulesToggles = controller.stateManager.getWorkspaceStateKey("workflowToggles")

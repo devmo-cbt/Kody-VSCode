@@ -3,26 +3,26 @@ import { FunctionDeclaration as GoogleTool, Type as GoogleToolParamType } from "
 import { ChatCompletionTool as OpenAITool } from "openai/resources/chat/completions"
 import { FunctionTool as OpenAIResponseFunctionTool, Tool as OpenAIResponseTool } from "openai/resources/responses/responses"
 import { ModelFamily } from "@/shared/prompts"
-import type { ClineDefaultTool } from "@/shared/tools"
+import type { KodyDefaultTool } from "@/shared/tools"
 import { MULTI_ROOT_HINT } from "./constants"
 import type { SystemPromptContext } from "./types"
 
-export interface ClineToolSpec {
+export interface KodyToolSpec {
 	variant: ModelFamily
-	id: ClineDefaultTool
+	id: KodyDefaultTool
 	name: string
 	description: string
 	instruction?: string
 	contextRequirements?: (context: SystemPromptContext) => boolean
-	parameters?: Array<ClineToolSpecParameter>
+	parameters?: Array<KodyToolSpecParameter>
 }
 
-interface ClineToolSpecParameter {
+interface KodyToolSpecParameter {
 	name: string
 	required: boolean
 	instruction: string | ((context: SystemPromptContext) => string)
 	usage?: string
-	dependencies?: ClineDefaultTool[]
+	dependencies?: KodyDefaultTool[]
 	description?: string
 	contextRequirements?: (context: SystemPromptContext) => boolean
 	// TODO: Confirm if "integer" is actually supported across providers
@@ -46,10 +46,10 @@ interface ClineToolSpecParameter {
 }
 
 /**
- * Converts a ClineToolSpec into an OpenAI ChatCompletionTool definition
+ * Converts a KodyToolSpec into an OpenAI ChatCompletionTool definition
  * Docs: https://openrouter.ai/docs/features/tool-calling#step-1-inference-request-with-tools
  */
-export function toolSpecFunctionDefinition(tool: ClineToolSpec, context: SystemPromptContext): OpenAITool {
+export function toolSpecFunctionDefinition(tool: KodyToolSpec, context: SystemPromptContext): OpenAITool {
 	// Check if the tool should be included based on context requirements
 	if (tool.contextRequirements && !tool.contextRequirements(context)) {
 		throw new Error(`Tool ${tool.name} does not meet context requirements`)
@@ -140,9 +140,9 @@ export function toolSpecFunctionDefinition(tool: ClineToolSpec, context: SystemP
 }
 
 /**
- * Converts a ClineToolSpec into an Anthropic Tool definition
+ * Converts a KodyToolSpec into an Anthropic Tool definition
  */
-export function toolSpecInputSchema(tool: ClineToolSpec, context: SystemPromptContext): AnthropicTool {
+export function toolSpecInputSchema(tool: KodyToolSpec, context: SystemPromptContext): AnthropicTool {
 	// Check if the tool should be included based on context requirements
 	if (tool.contextRequirements && !tool.contextRequirements(context)) {
 		throw new Error(`Tool ${tool.name} does not meet context requirements`)
@@ -237,10 +237,10 @@ const GOOGLE_TOOL_PARAM_MAP: Record<string, string> = {
 }
 
 /**
- * Converts a ClineToolSpec into a Google Gemini function.
+ * Converts a KodyToolSpec into a Google Gemini function.
  * Docs: https://ai.google.dev/gemini-api/docs/function-calling
  */
-export function toolSpecFunctionDeclarations(tool: ClineToolSpec, context: SystemPromptContext): GoogleTool {
+export function toolSpecFunctionDeclarations(tool: KodyToolSpec, context: SystemPromptContext): GoogleTool {
 	// Check if the tool should be included based on context requirements
 	if (tool.contextRequirements && !tool.contextRequirements(context)) {
 		throw new Error(`Tool ${tool.name} does not meet context requirements`)

@@ -24,7 +24,7 @@ describe("Skills Utility Functions", () => {
 
 	// Use path.join for OS-independent paths
 	const TEST_CWD = path.join("/test", "project")
-	const GLOBAL_SKILLS_DIR = path.join("/home", "user", ".cline", "skills")
+	const GLOBAL_SKILLS_DIR = path.join("/home", "user", ".kody", "skills")
 
 	beforeEach(() => {
 		sandbox = sinon.createSandbox()
@@ -39,8 +39,8 @@ describe("Skills Utility Functions", () => {
 		statStub = sandbox.stub(fs.promises, "stat")
 		readFileStub = sandbox.stub(fs.promises, "readFile")
 		sandbox.stub(disk, "getSkillsDirectoriesForScan").returns([
-			{ path: path.join(TEST_CWD, ".clinerules", "skills"), source: "project" },
-			{ path: path.join(TEST_CWD, ".cline", "skills"), source: "project" },
+			{ path: path.join(TEST_CWD, ".kodyrules", "skills"), source: "project" },
+			{ path: path.join(TEST_CWD, ".kody", "skills"), source: "project" },
 			{ path: path.join(TEST_CWD, ".claude", "skills"), source: "project" },
 			{ path: path.join(TEST_CWD, ".agents", "skills"), source: "project" },
 			{ path: GLOBAL_SKILLS_DIR, source: "global" },
@@ -80,8 +80,8 @@ Instructions here`)
 			expect(skills[0].source).to.equal("global")
 		})
 
-		it("should discover skills from project .clinerules/skills directory", async () => {
-			const projectSkillsDir = path.join(TEST_CWD, ".clinerules", "skills")
+		it("should discover skills from project .kodyrules/skills directory", async () => {
+			const projectSkillsDir = path.join(TEST_CWD, ".kodyrules", "skills")
 			const skillDir = path.join(projectSkillsDir, "explaining-code")
 			const skillMdPath = path.join(skillDir, "SKILL.md")
 
@@ -103,15 +103,15 @@ Use analogies and ASCII diagrams when explaining code.`)
 			expect(skills[0].source).to.equal("project")
 		})
 
-		it("should discover skills from project .cline/skills directory", async () => {
-			const clineSkillsDir = path.join(TEST_CWD, ".cline", "skills")
-			const skillDir = path.join(clineSkillsDir, "debugging")
+		it("should discover skills from project .kody/skills directory", async () => {
+			const kodySkillsDir = path.join(TEST_CWD, ".kody", "skills")
+			const skillDir = path.join(kodySkillsDir, "debugging")
 			const skillMdPath = path.join(skillDir, "SKILL.md")
 
-			fileExistsStub.withArgs(clineSkillsDir).resolves(true)
+			fileExistsStub.withArgs(kodySkillsDir).resolves(true)
 			fileExistsStub.withArgs(skillMdPath).resolves(true)
-			isDirectoryStub.withArgs(clineSkillsDir).resolves(true)
-			readdirStub.withArgs(clineSkillsDir).resolves(["debugging"])
+			isDirectoryStub.withArgs(kodySkillsDir).resolves(true)
+			readdirStub.withArgs(kodySkillsDir).resolves(["debugging"])
 			statStub.withArgs(skillDir).resolves({ isDirectory: () => true })
 			readFileStub.withArgs(skillMdPath, "utf-8").resolves(`---
 name: debugging
@@ -239,7 +239,7 @@ description: Global coding skill
 Global instructions`)
 
 			// Setup project skill with same name (lower priority)
-			const projectSkillsDir = path.join(TEST_CWD, ".clinerules", "skills")
+			const projectSkillsDir = path.join(TEST_CWD, ".kodyrules", "skills")
 			const projectSkillDir = path.join(projectSkillsDir, "coding")
 			const projectSkillMdPath = path.join(projectSkillDir, "SKILL.md")
 
@@ -279,7 +279,7 @@ description: A global skill
 Content`)
 
 			// Setup project skill with different name
-			const projectSkillsDir = path.join(TEST_CWD, ".clinerules", "skills")
+			const projectSkillsDir = path.join(TEST_CWD, ".kodyrules", "skills")
 			const projectSkillDir = path.join(projectSkillsDir, "project-skill")
 			const projectSkillMdPath = path.join(projectSkillDir, "SKILL.md")
 

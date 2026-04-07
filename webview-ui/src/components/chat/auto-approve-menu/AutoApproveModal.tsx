@@ -75,7 +75,7 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({ isVisible, setIsVis
 					Let Kody take these actions without asking for approval.{" "}
 					<a
 						className="text-link hover:text-link-hover"
-						href="https://docs.cline.bot/features/auto-approve#auto-approve"
+						href="https://docs.kody.bot/features/auto-approve#auto-approve"
 						rel="noopener"
 						style={{ fontSize: "inherit" }}
 						target="_blank">

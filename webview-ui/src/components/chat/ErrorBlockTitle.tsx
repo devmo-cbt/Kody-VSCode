@@ -1,5 +1,5 @@
 import React from "react"
-import { ClineError, ClineErrorType } from "../../../../src/services/error/ClineError"
+import { KodyError, KodyErrorType } from "../../../../src/services/error/KodyError"
 import { ProgressIndicator } from "./ChatRow"
 
 interface ErrorBlockTitleProps {
@@ -22,7 +22,7 @@ export const ErrorBlockTitle = ({
 }: ErrorBlockTitleProps): [React.ReactElement, React.ReactElement] => {
 	const getIconSpan = (iconName: string, colorClass: string) => (
 		<div className="w-4 h-4 flex items-center justify-center">
-			<span className={`codicon codicon-${iconName} text-base -mb-0.5 ${colorClass}`}></span>
+			<span className={`codicon codicon-${iconName} text-base -mb-0.5 ${colorClass}`} />
 		</div>
 	)
 
@@ -57,8 +57,8 @@ export const ErrorBlockTitle = ({
 			details.classNames.push("text-(--vscode-foreground)")
 		} else if (apiRequestFailedMessage) {
 			// Handle failed request
-			const clineError = ClineError.parse(apiRequestFailedMessage)
-			const titleText = clineError?.isErrorType(ClineErrorType.Balance) ? "Credit Limit Reached" : "API Request Failed"
+			const kodyError = KodyError.parse(apiRequestFailedMessage)
+			const titleText = kodyError?.isErrorType(KodyErrorType.Balance) ? "Credit Limit Reached" : "API Request Failed"
 			details.title = titleText
 			details.classNames.push("font-bold text-(--vscode-errorForeground)")
 		} else if (retryStatus) {

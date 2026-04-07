@@ -15,7 +15,7 @@ const log = (...args: unknown[]) => {
 
 	const timestamp = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}`
 
-	console.log(`[${timestamp}]`, "#bot.cline.server.ts", ...args)
+	console.log(`[${timestamp}]`, "#bot.kody.server.ts", ...args)
 }
 
 function getPackageDefinition() {
@@ -51,4 +51,4 @@ async function asyncIteratorToCallbacks<T>(stream: AsyncIterable<T>, callbacks: 
 	}
 }
 
-export { getPackageDefinition, log, asyncIteratorToCallbacks }
+export { asyncIteratorToCallbacks, getPackageDefinition, log }

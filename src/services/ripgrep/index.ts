@@ -1,4 +1,4 @@
-import { ClineIgnoreController } from "@core/ignore/ClineIgnoreController"
+import { KodyIgnoreController } from "@core/ignore/KodyIgnoreController"
 import * as childProcess from "child_process"
 import * as path from "path"
 import * as readline from "readline"
@@ -65,7 +65,7 @@ async function execRipgrep(args: string[]): Promise<string> {
 		// cross-platform alternative to head, which is ripgrep author's recommendation for limiting output.
 		const rl = readline.createInterface({
 			input: rgProcess.stdout,
-			crlfDelay: Infinity, // treat \r\n as a single line break even if it's split across chunks. This ensures consistent behavior across different operating systems.
+			crlfDelay: Number.POSITIVE_INFINITY, // treat \r\n as a single line break even if it's split across chunks. This ensures consistent behavior across different operating systems.
 		})
 
 		let output = ""
@@ -104,7 +104,7 @@ export async function regexSearchFiles(
 	directoryPath: string,
 	regex: string,
 	filePattern?: string,
-	clineIgnoreController?: ClineIgnoreController,
+	kodyIgnoreController?: KodyIgnoreController,
 ): Promise<string> {
 	const args = ["--json", "-e", regex, "--glob", filePattern || "*", "--context", "1", directoryPath]
 
@@ -150,9 +150,9 @@ export async function regexSearchFiles(
 		results.push(currentResult as SearchResult)
 	}
 
-	// Filter results using ClineIgnoreController if provided
-	const filteredResults = clineIgnoreController
-		? results.filter((result) => clineIgnoreController.validateAccess(result.filePath))
+	// Filter results using KodyIgnoreController if provided
+	const filteredResults = kodyIgnoreController
+		? results.filter((result) => kodyIgnoreController.validateAccess(result.filePath))
 		: results
 
 	return formatResults(filteredResults, cwd)

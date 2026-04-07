@@ -2,10 +2,10 @@ import { Tool as AnthropicTool } from "@anthropic-ai/sdk/resources/index"
 import { FunctionDeclaration as GoogleTool } from "@google/genai"
 import { ChatCompletionTool as OpenAITool } from "openai/resources/chat/completions"
 
-export type ClineTool = OpenAITool | AnthropicTool | GoogleTool
+export type KodyTool = OpenAITool | AnthropicTool | GoogleTool
 
 // Define available tool ids
-export enum ClineDefaultTool {
+export enum KodyDefaultTool {
 	ASK = "ask_followup_question",
 	ATTEMPT = "attempt_completion",
 	BASH = "execute_command",
@@ -37,7 +37,7 @@ export enum ClineDefaultTool {
 
 // Array of all tool names for compatibility
 // Automatically generated from the enum values
-export const toolUseNames = Object.values(ClineDefaultTool) as ClineDefaultTool[]
+export const toolUseNames = Object.values(KodyDefaultTool) as KodyDefaultTool[]
 
 const dynamicToolUseNamesByNamespace = new Map<string, Set<string>>()
 
@@ -54,14 +54,14 @@ export function getToolUseNames(): string[] {
 // Tools that are safe to run in parallel with the initial checkpoint commit
 // These are tools that do not modify the workspace state
 export const READ_ONLY_TOOLS = [
-	ClineDefaultTool.LIST_FILES,
-	ClineDefaultTool.FILE_READ,
-	ClineDefaultTool.SEARCH,
-	ClineDefaultTool.LIST_CODE_DEF,
-	ClineDefaultTool.BROWSER,
-	ClineDefaultTool.ASK,
-	ClineDefaultTool.WEB_SEARCH,
-	ClineDefaultTool.WEB_FETCH,
-	ClineDefaultTool.USE_SKILL,
-	ClineDefaultTool.USE_SUBAGENTS,
+	KodyDefaultTool.LIST_FILES,
+	KodyDefaultTool.FILE_READ,
+	KodyDefaultTool.SEARCH,
+	KodyDefaultTool.LIST_CODE_DEF,
+	KodyDefaultTool.BROWSER,
+	KodyDefaultTool.ASK,
+	KodyDefaultTool.WEB_SEARCH,
+	KodyDefaultTool.WEB_FETCH,
+	KodyDefaultTool.USE_SKILL,
+	KodyDefaultTool.USE_SUBAGENTS,
 ] as const

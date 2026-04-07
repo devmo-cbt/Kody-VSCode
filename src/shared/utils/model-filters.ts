@@ -6,18 +6,18 @@ function normalizeModelId(modelId: string): string {
 
 const CLINE_FREE_MODEL_EXCEPTIONS = ["minimax-m2", "devstral-2512", "arcee-ai/trinity-large"]
 
-export function isClineFreeModelException(modelId: string): boolean {
+export function isKodyFreeModelException(modelId: string): boolean {
 	const normalizedModelId = normalizeModelId(modelId)
 	return CLINE_FREE_MODEL_EXCEPTIONS.some((token) => normalizedModelId.includes(token))
 }
 
 /**
  * Filters OpenRouter model IDs based on provider-specific rules.
- * For Cline provider: excludes :free models (except known exception models)
- * For OpenRouter/Vercel: excludes cline/ prefixed models
+ * For Kody provider: excludes :free models (except known exception models)
+ * For OpenRouter/Vercel: excludes kody/ prefixed models
  * @param modelIds Array of model IDs to filter
  * @param provider The current API provider
- * @param allowedFreeModelIds Optional list of Cline free model IDs to keep visible
+ * @param allowedFreeModelIds Optional list of Kody free model IDs to keep visible
  * @returns Filtered array of model IDs
  */
 export function filterOpenRouterModelIds(
@@ -25,15 +25,15 @@ export function filterOpenRouterModelIds(
 	provider: ApiProvider,
 	allowedFreeModelIds: string[] = [],
 ): string[] {
-	if (provider === "cline") {
+	if (provider === "kody") {
 		const allowedFreeIdSet = new Set(allowedFreeModelIds.map((id) => normalizeModelId(id)))
-		// For Cline provider: exclude :free models, but keep known exception models
+		// For Kody provider: exclude :free models, but keep known exception models
 		return modelIds.filter((id) => {
 			const normalizedModelId = normalizeModelId(id)
 			if (allowedFreeIdSet.has(normalizedModelId)) {
 				return true
 			}
-			if (isClineFreeModelException(normalizedModelId)) {
+			if (isKodyFreeModelException(normalizedModelId)) {
 				return true
 			}
 			// Filter out other :free models
@@ -41,6 +41,6 @@ export function filterOpenRouterModelIds(
 		})
 	}
 
-	// For OpenRouter and Vercel AI Gateway providers: exclude Cline-specific models
-	return modelIds.filter((id) => !id.startsWith("cline/"))
+	// For OpenRouter and Vercel AI Gateway providers: exclude Kody-specific models
+	return modelIds.filter((id) => !id.startsWith("kody/"))
 }

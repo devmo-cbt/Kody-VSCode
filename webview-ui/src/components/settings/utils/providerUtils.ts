@@ -79,7 +79,7 @@ export function supportsReasoningEffortForModelId(modelId?: string, _allowShortO
 
 /**
  * Returns the static model list for a provider.
- * For providers with dynamic models (openrouter, cline, ollama, etc.), returns undefined.
+ * For providers with dynamic models (openrouter, kody, ollama, etc.), returns undefined.
  * Some providers depend on configuration (qwen, zai) for region-specific models.
  */
 export function getModelsForProvider(
@@ -148,7 +148,7 @@ export function getModelsForProvider(
 			return dynamicModels?.liteLlmModels
 		// Providers with dynamic models - return undefined
 		case "openrouter":
-		case "cline":
+		case "kody":
 		case "openai":
 		case "ollama":
 		case "lmstudio":
@@ -273,25 +273,25 @@ export function normalizeApiConfiguration(
 				selectedModelId: requestyModelId || requestyDefaultModelId,
 				selectedModelInfo: requestyModelInfo || requestyDefaultModelInfo,
 			}
-		case "cline":
+		case "kody":
 			const fallbackOpenRouterModelId =
 				currentMode === "plan" ? apiConfiguration?.planModeOpenRouterModelId : apiConfiguration?.actModeOpenRouterModelId
 			const fallbackOpenRouterModelInfo =
 				currentMode === "plan"
 					? apiConfiguration?.planModeOpenRouterModelInfo
 					: apiConfiguration?.actModeOpenRouterModelInfo
-			const clineModelId =
-				(currentMode === "plan" ? apiConfiguration?.planModeClineModelId : apiConfiguration?.actModeClineModelId) ||
+			const kodyModelId =
+				(currentMode === "plan" ? apiConfiguration?.planModeKodyModelId : apiConfiguration?.actModeKodyModelId) ||
 				fallbackOpenRouterModelId ||
 				openRouterDefaultModelId
-			const clineModelInfo =
-				(currentMode === "plan" ? apiConfiguration?.planModeClineModelInfo : apiConfiguration?.actModeClineModelInfo) ||
+			const kodyModelInfo =
+				(currentMode === "plan" ? apiConfiguration?.planModeKodyModelInfo : apiConfiguration?.actModeKodyModelInfo) ||
 				fallbackOpenRouterModelInfo ||
 				openRouterDefaultModelInfo
 			return {
 				selectedProvider: provider,
-				selectedModelId: clineModelId,
-				selectedModelInfo: clineModelInfo,
+				selectedModelId: kodyModelId,
+				selectedModelInfo: kodyModelInfo,
 			}
 		case "openai":
 			const openAiModelId =
@@ -531,7 +531,7 @@ export function getModeSpecificFields(apiConfiguration: ApiConfiguration | undef
 			requestyModelId: undefined,
 			openAiModelId: undefined,
 			openRouterModelId: undefined,
-			clineModelId: undefined,
+			kodyModelId: undefined,
 			groqModelId: undefined,
 			basetenModelId: undefined,
 			huggingFaceModelId: undefined,
@@ -545,7 +545,7 @@ export function getModeSpecificFields(apiConfiguration: ApiConfiguration | undef
 			openAiModelInfo: undefined,
 			liteLlmModelInfo: undefined,
 			openRouterModelInfo: undefined,
-			clineModelInfo: undefined,
+			kodyModelInfo: undefined,
 			requestyModelInfo: undefined,
 			groqModelInfo: undefined,
 			basetenModelInfo: undefined,
@@ -571,12 +571,11 @@ export function getModeSpecificFields(apiConfiguration: ApiConfiguration | undef
 	const openRouterModelInfo =
 		mode === "plan" ? apiConfiguration.planModeOpenRouterModelInfo : apiConfiguration.actModeOpenRouterModelInfo
 
-	// Backward compatibility: Cline previously stored model selection in OpenRouter keys.
-	const clineModelId =
-		(mode === "plan" ? apiConfiguration.planModeClineModelId : apiConfiguration.actModeClineModelId) || openRouterModelId
-	const clineModelInfo =
-		(mode === "plan" ? apiConfiguration.planModeClineModelInfo : apiConfiguration.actModeClineModelInfo) ||
-		openRouterModelInfo
+	// Backward compatibility: Kody previously stored model selection in OpenRouter keys.
+	const kodyModelId =
+		(mode === "plan" ? apiConfiguration.planModeKodyModelId : apiConfiguration.actModeKodyModelId) || openRouterModelId
+	const kodyModelInfo =
+		(mode === "plan" ? apiConfiguration.planModeKodyModelInfo : apiConfiguration.actModeKodyModelInfo) || openRouterModelInfo
 
 	return {
 		// Core fields
@@ -592,7 +591,7 @@ export function getModeSpecificFields(apiConfiguration: ApiConfiguration | undef
 		requestyModelId: mode === "plan" ? apiConfiguration.planModeRequestyModelId : apiConfiguration.actModeRequestyModelId,
 		openAiModelId: mode === "plan" ? apiConfiguration.planModeOpenAiModelId : apiConfiguration.actModeOpenAiModelId,
 		openRouterModelId,
-		clineModelId,
+		kodyModelId,
 		groqModelId: mode === "plan" ? apiConfiguration.planModeGroqModelId : apiConfiguration.actModeGroqModelId,
 		basetenModelId: mode === "plan" ? apiConfiguration.planModeBasetenModelId : apiConfiguration.actModeBasetenModelId,
 		huggingFaceModelId:
@@ -611,7 +610,7 @@ export function getModeSpecificFields(apiConfiguration: ApiConfiguration | undef
 		openAiModelInfo: mode === "plan" ? apiConfiguration.planModeOpenAiModelInfo : apiConfiguration.actModeOpenAiModelInfo,
 		liteLlmModelInfo: mode === "plan" ? apiConfiguration.planModeLiteLlmModelInfo : apiConfiguration.actModeLiteLlmModelInfo,
 		openRouterModelInfo,
-		clineModelInfo,
+		kodyModelInfo,
 		requestyModelInfo:
 			mode === "plan" ? apiConfiguration.planModeRequestyModelInfo : apiConfiguration.actModeRequestyModelInfo,
 		groqModelInfo: mode === "plan" ? apiConfiguration.planModeGroqModelInfo : apiConfiguration.actModeGroqModelInfo,
@@ -693,11 +692,11 @@ export async function syncModeConfigurations(
 			updates.actModeOpenRouterModelInfo = sourceFields.openRouterModelInfo
 			break
 
-		case "cline":
-			updates.planModeClineModelId = sourceFields.clineModelId
-			updates.actModeClineModelId = sourceFields.clineModelId
-			updates.planModeClineModelInfo = sourceFields.clineModelInfo
-			updates.actModeClineModelInfo = sourceFields.clineModelInfo
+		case "kody":
+			updates.planModeKodyModelId = sourceFields.kodyModelId
+			updates.actModeKodyModelId = sourceFields.kodyModelId
+			updates.planModeKodyModelInfo = sourceFields.kodyModelInfo
+			updates.actModeKodyModelInfo = sourceFields.kodyModelInfo
 			break
 
 		case "requesty":

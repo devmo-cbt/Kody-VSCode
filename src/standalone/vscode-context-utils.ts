@@ -112,9 +112,9 @@ export class JsonKeyValueStore<T> {
 	}
 }
 
-/** This is not used in cline, none of the methods are implemented. */
+/** This is not used in kody, none of the methods are implemented. */
 export class EnvironmentVariableCollection implements EnvironmentVariableCollection {
-	persistent: boolean = false
+	persistent = false
 	description: string | undefined = undefined
 	replace(_variable: string, _value: string, _options?: EnvironmentVariableMutatorOptions): void {
 		throw new Error("Method not implemented.")

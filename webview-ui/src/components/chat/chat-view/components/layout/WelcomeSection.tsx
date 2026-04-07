@@ -1,7 +1,7 @@
-import { BANNER_DATA, BannerAction, BannerActionType, BannerCardData } from "@shared/cline/banner"
-import { EmptyRequest } from "@shared/proto/cline/common"
-import type { Worktree } from "@shared/proto/cline/worktree"
-import { TrackWorktreeViewOpenedRequest } from "@shared/proto/cline/worktree"
+import { BANNER_DATA, BannerAction, BannerActionType, BannerCardData } from "@shared/kody/banner"
+import { EmptyRequest } from "@shared/proto/kody/common"
+import type { Worktree } from "@shared/proto/kody/worktree"
+import { TrackWorktreeViewOpenedRequest } from "@shared/proto/kody/worktree"
 import { GitBranch } from "lucide-react"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import HistoryPreview from "@/components/history/HistoryPreview"
@@ -10,8 +10,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import HomeHeader from "@/components/welcome/HomeHeader"
 import { SuggestedTasks } from "@/components/welcome/SuggestedTasks"
 import CreateWorktreeModal from "@/components/worktrees/CreateWorktreeModal"
-import { useClineAuth } from "@/context/ClineAuthContext"
 import { useExtensionState } from "@/context/ExtensionStateContext"
+import { useKodyAuth } from "@/context/KodyAuthContext"
 import { AccountServiceClient, StateServiceClient, UiServiceClient, WorktreeServiceClient } from "@/services/grpc-client"
 import { convertBannerData } from "@/utils/bannerUtils"
 import { getCurrentPlatform } from "@/utils/platformUtils"
@@ -56,7 +56,7 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 			.catch(() => setIsGitRepo(false))
 	}, [])
 
-	const { clineUser } = useClineAuth()
+	const { kodyUser } = useKodyAuth()
 	const {
 		openRouterModels,
 		navigateToSettings,
@@ -158,8 +158,8 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 				return false
 			}
 
-			if (banner.isClineUserOnly !== undefined) {
-				return banner.isClineUserOnly === !!clineUser
+			if (banner.isKodyUserOnly !== undefined) {
+				return banner.isKodyUserOnly === !!kodyUser
 			}
 
 			if (banner.platforms && !banner.platforms.includes(getCurrentPlatform())) {
@@ -168,7 +168,7 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 
 			return true
 		})
-	}, [isBannerDismissed, clineUser])
+	}, [isBannerDismissed, kodyUser])
 
 	/**
 	 * Action handler - maps action types to actual implementations
@@ -190,8 +190,8 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 						actModeOpenRouterModelId: modelId,
 						planModeOpenRouterModelInfo: openRouterModels[modelId],
 						actModeOpenRouterModelInfo: openRouterModels[modelId],
-						planModeApiProvider: "cline",
-						actModeApiProvider: "cline",
+						planModeApiProvider: "kody",
+						actModeApiProvider: "kody",
 					})
 					navigateToSettingsModelPicker({ targetSection: "api-config", initialModelTab })
 					break
@@ -217,7 +217,7 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 					break
 
 				case BannerActionType.InstallCli:
-					StateServiceClient.installClineCli({}).catch((error) =>
+					StateServiceClient.installKodyCli({}).catch((error) =>
 						console.error("Failed to initiate CLI installation:", error),
 					)
 					break
@@ -271,7 +271,7 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 
 		// Combine both sources: extension state banners first, then hardcoded banners
 		return [...extensionStateBanners, ...hardcodedBanners]
-	}, [bannerConfig, banners, clineUser, handleBannerAction, handleBannerDismiss])
+	}, [bannerConfig, banners, kodyUser, handleBannerAction, handleBannerDismiss])
 
 	return (
 		<div className="flex flex-col flex-1 w-full h-full p-0 m-0">
@@ -296,7 +296,7 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 									</TooltipTrigger>
 									<TooltipContent side="top">
 										Create a new git worktree and open it in a separate window. Great for running parallel
-										Cline tasks.
+										Kody tasks.
 									</TooltipContent>
 								</Tooltip>
 								*/}

@@ -1,15 +1,15 @@
 import { name, publisher, version } from "../package.json"
 import { HostProvider } from "./hosts/host-provider"
 
-const prefix = name === "claude-dev" ? "cline" : name
+const prefix = name === "claude-dev" ? "kody" : name
 
 /**
  * List of commands with the name of the extension they are registered under.
  * These should match the command IDs defined in package.json.
  * For Nightly build, the publish script has updated all the commands to use the extension name as prefix.
- * In production, all commands are registered under "cline" for consistency.
+ * In production, all commands are registered under "kody" for consistency.
  */
-const ClineCommands = {
+const KodyCommands = {
 	PlusButton: prefix + ".plusButtonClicked",
 	McpButton: prefix + ".mcpButtonClicked",
 	SettingsButton: prefix + ".settingsButtonClicked",
@@ -18,7 +18,7 @@ const ClineCommands = {
 	WorktreesButton: prefix + ".worktreesButtonClicked",
 	TerminalOutput: prefix + ".addTerminalOutputToChat",
 	AddToChat: prefix + ".addToChat",
-	FixWithCline: prefix + ".fixWithCline",
+	FixWithKody: prefix + ".fixWithKody",
 	ExplainCode: prefix + ".explainCode",
 	ImproveCode: prefix + ".improveCode",
 	FocusChatInput: prefix + ".focusChatInput",
@@ -36,7 +36,7 @@ const ClineCommands = {
  * IDs for the views registered by the extension.
  * These should match the name + view IDs defined in package.json.
  */
-const ClineViewIds = {
+const KodyViewIds = {
 	Sidebar: name + ".SidebarProvider",
 }
 
@@ -49,8 +49,8 @@ export const ExtensionRegistryInfo = {
 	name,
 	version,
 	publisher,
-	commands: ClineCommands,
-	views: ClineViewIds,
+	commands: KodyCommands,
+	views: KodyViewIds,
 }
 
 export interface HostInfo {
@@ -63,7 +63,7 @@ export interface HostInfo {
 	 */
 	os: string
 	/**
-	 * The type of the cline host environment, e.g. 'VSCode Extension', 'Cline for JetBrains', 'CLI'
+	 * The type of the kody host environment, e.g. 'VSCode Extension', 'Kody for JetBrains', 'CLI'
 	 * This is different from the platform because there are many JetBrains IDEs, but they all use the same
 	 * plugin.
 	 */
@@ -88,10 +88,10 @@ export const HostRegistryInfo = {
 	init: async (distinctId: string) => {
 		const host = await HostProvider.env.getHostVersion({})
 		const hostVersion = host.version
-		const extensionVersion = host.clineVersion || ExtensionRegistryInfo.version
+		const extensionVersion = host.kodyVersion || ExtensionRegistryInfo.version
 		const platform = host.platform || "unknown"
 		const os = process.platform || "unknown"
-		const ide = host.clineType || "unknown"
+		const ide = host.kodyType || "unknown"
 		hostInfo = { hostVersion, extensionVersion, platform, os, ide, distinctId }
 	},
 	get: () => hostInfo,

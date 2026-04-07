@@ -1,0 +1,21 @@
+import { EmptyRequest } from "@shared/proto/kody/common"
+import { OpenRouterCompatibleModelInfo } from "@shared/proto/kody/models"
+import { toProtobufModels } from "../../../shared/proto-conversions/models/typeConversion"
+import type { Controller } from "../index"
+import { refreshKodyModels } from "./refreshKodyModels"
+
+/**
+ * Refreshes Kody models and returns protobuf types for gRPC
+ * @param controller The controller instance
+ * @param request Empty request (unused but required for gRPC signature)
+ * @returns OpenRouterCompatibleModelInfo with protobuf types (reusing the same proto type)
+ */
+export async function refreshKodyModelsRpc(
+	controller: Controller,
+	_request: EmptyRequest,
+): Promise<OpenRouterCompatibleModelInfo> {
+	const models = await refreshKodyModels(controller)
+	return OpenRouterCompatibleModelInfo.create({
+		models: toProtobufModels(models),
+	})
+}

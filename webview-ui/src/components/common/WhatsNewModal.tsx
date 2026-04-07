@@ -1,4 +1,4 @@
-import { BannerAction, BannerCardData } from "@shared/cline/banner"
+import { BannerAction, BannerCardData } from "@shared/kody/banner"
 import React, { useCallback } from "react"
 import { useMount } from "react-use"
 import DiscordIcon from "@/assets/DiscordIcon"
@@ -31,8 +31,8 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ open, onClose, ver
 			// Switch to Kody provider first so the model picker tab works
 			// Optionally also set the model if provided
 			const updates: Record<string, any> = {
-				planModeApiProvider: "cline",
-				actModeApiProvider: "cline",
+				planModeApiProvider: "kody",
+				actModeApiProvider: "kody",
 			}
 			if (modelId) {
 				updates.planModeOpenRouterModelId = modelId
@@ -85,7 +85,7 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ open, onClose, ver
 							<a
 								aria-label="Follow us on X"
 								className="text-[var(--vscode-foreground)] hover:text-[var(--vscode-textLink-activeForeground)] transition-colors"
-								href="https://x.com/cline"
+								href="https://x.com/kody"
 								rel="noopener noreferrer"
 								target="_blank">
 								<XIcon />
@@ -95,7 +95,7 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ open, onClose, ver
 							<a
 								aria-label="Join our Discord"
 								className="text-[var(--vscode-foreground)] hover:text-[var(--vscode-textLink-activeForeground)] transition-colors"
-								href="https://discord.gg/cline"
+								href="https://discord.gg/kody"
 								rel="noopener noreferrer"
 								target="_blank">
 								<DiscordIcon />
@@ -105,7 +105,7 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ open, onClose, ver
 							<a
 								aria-label="Star us on GitHub"
 								className="text-[var(--vscode-foreground)] hover:text-[var(--vscode-textLink-activeForeground)] transition-colors"
-								href="https://github.com/cline/cline"
+								href="https://github.com/kody/kody"
 								rel="noopener noreferrer"
 								target="_blank">
 								<GitHubIcon />
@@ -115,7 +115,7 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ open, onClose, ver
 							<a
 								aria-label="Join our subreddit"
 								className="text-[var(--vscode-foreground)] hover:text-[var(--vscode-textLink-activeForeground)] transition-colors"
-								href="https://www.reddit.com/r/cline/"
+								href="https://www.reddit.com/r/kody/"
 								rel="noopener noreferrer"
 								target="_blank">
 								<RedditIcon />
@@ -125,7 +125,7 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ open, onClose, ver
 							<a
 								aria-label="Follow us on LinkedIn"
 								className="text-[var(--vscode-foreground)] hover:text-[var(--vscode-textLink-activeForeground)] transition-colors"
-								href="https://www.linkedin.com/company/clinebot/"
+								href="https://www.linkedin.com/company/kodybot/"
 								rel="noopener noreferrer"
 								target="_blank">
 								<LinkedInIcon />
@@ -136,7 +136,7 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ open, onClose, ver
 						<p className="text-sm text-center" style={{ color: "var(--vscode-descriptionForeground)" }}>
 							Please support Kody by{" "}
 							<a
-								href="https://github.com/cline/cline"
+								href="https://github.com/kody/kody"
 								rel="noopener noreferrer"
 								style={{ color: "var(--vscode-textLink-foreground)" }}
 								target="_blank">

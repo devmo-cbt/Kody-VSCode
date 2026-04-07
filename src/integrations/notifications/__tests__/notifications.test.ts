@@ -55,7 +55,7 @@ describe("notifications", () => {
 		)
 
 		await notificationsModule.showSystemNotification({
-			title: 'Cline "Agent"',
+			title: 'Kody "Agent"',
 			subtitle: "Path C:\\temp",
 			message: 'He said "hello"',
 		})
@@ -64,7 +64,7 @@ describe("notifications", () => {
 		expect(execaStub.firstCall.args[0]).to.equal("osascript")
 		const script = (execaStub.firstCall.args[1] as string[])[1]
 		expect(script).to.contain('display notification "He said \\"hello\\""')
-		expect(script).to.contain('with title "Cline \\"Agent\\""')
+		expect(script).to.contain('with title "Kody \\"Agent\\""')
 		expect(script).to.contain('subtitle "Path C:\\\\temp"')
 	})
 
@@ -78,11 +78,11 @@ describe("notifications", () => {
 			platformStub as unknown as Parameters<typeof notificationsModule.setNotificationPlatformForTesting>[0],
 		)
 
-		await notificationsModule.showSystemNotification({ title: "Cline", subtitle: "Approval Required", message: "test" })
+		await notificationsModule.showSystemNotification({ title: "Kody", subtitle: "Approval Required", message: "test" })
 
 		sinon.assert.calledOnce(execaStub)
 		expect(execaStub.firstCall.args[0]).to.equal("notify-send")
-		expect(execaStub.firstCall.args[1]).to.deep.equal(["Cline", "Approval Required\ntest"])
+		expect(execaStub.firstCall.args[1]).to.deep.equal(["Kody", "Approval Required\ntest"])
 	})
 
 	it("creates explicit approval marker only when required", () => {
@@ -119,10 +119,7 @@ describe("notifications", () => {
 		await notificationsModule.showApprovalNotification({ message: "npm install", requiresExplicitApproval: true }, true)
 		sinon.assert.calledOnce(execaStub)
 		expect(execaStub.firstCall.args[0]).to.equal("notify-send")
-		expect(execaStub.firstCall.args[1]).to.deep.equal([
-			"Cline",
-			"Approval Required\nnpm install (explicit approval required)",
-		])
+		expect(execaStub.firstCall.args[1]).to.deep.equal(["Kody", "Approval Required\nnpm install (explicit approval required)"])
 	})
 
 	it("abbreviates long approval notification messages while preserving the explicit approval suffix", () => {

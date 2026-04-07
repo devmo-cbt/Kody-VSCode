@@ -11,7 +11,7 @@ const FEATURE_TIPS: FeatureTipItem[] = [
 		text: 'Enable "Double-Check Completion" in settings to have Kody verify its work before finishing a task.',
 	},
 	{
-		text: "Add a .clinerules file to your project root to give Kody project-specific instructions.",
+		text: "Add a .kodyrules file to your project root to give Kody project-specific instructions.",
 	},
 	{
 		text: "Switch to Plan Mode to discuss and plan an approach before Kody takes action.",

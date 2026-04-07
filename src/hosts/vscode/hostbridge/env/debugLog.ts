@@ -1,16 +1,16 @@
-import { Empty, StringRequest } from "@shared/proto/cline/common"
+import { Empty, StringRequest } from "@shared/proto/kody/common"
 import * as vscode from "vscode"
 
-const CLINE_OUTPUT_CHANNEL = vscode.window.createOutputChannel("Cline")
+const CLINE_OUTPUT_CHANNEL = vscode.window.createOutputChannel("Kody")
 
-// Appends a log message to all Cline output channels.
+// Appends a log message to all Kody output channels.
 export async function debugLog(request: StringRequest): Promise<Empty> {
 	CLINE_OUTPUT_CHANNEL.appendLine(request.value)
 	return Empty.create({})
 }
 
-// Register the Cline output channel within the VSCode extension context.
-export function registerClineOutputChannel(context: vscode.ExtensionContext): vscode.OutputChannel {
+// Register the Kody output channel within the VSCode extension context.
+export function registerKodyOutputChannel(context: vscode.ExtensionContext): vscode.OutputChannel {
 	context.subscriptions.push(CLINE_OUTPUT_CHANNEL)
 	return CLINE_OUTPUT_CHANNEL
 }

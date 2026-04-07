@@ -2,7 +2,7 @@
 	"name": "kody-agent",
 	"displayName": "Kody",
 	"description": "CB&T DevAgent",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"icon": "assets/icons/icon.png",
 	"workspaces": [
 		".",
@@ -452,7 +452,7 @@
 	"lint-staged": {
 		"src/shared/storage/state-keys.ts": [
 			"node scripts/generate-state-proto.mjs",
-			"git add proto/cline/state.proto"
+			"git add proto/kody/state.proto"
 		],
 		"*": [
 			"biome check --write --staged --no-errors-on-unmatched --files-ignore-unknown=true"

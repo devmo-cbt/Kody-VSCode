@@ -50,10 +50,10 @@ function saveMcpOAuthSecrets(secrets: McpOAuthSecrets): void {
 }
 
 /**
- * Implementation of OAuthClientProvider for Cline
+ * Implementation of OAuthClientProvider for Kody
  * Manages OAuth state and token storage for a single MCP server
  */
-class ClineOAuthClientProvider implements OAuthClientProvider {
+class KodyOAuthClientProvider implements OAuthClientProvider {
 	private serverName: string
 	private serverUrl: string
 	private _redirectUrl: string
@@ -97,9 +97,9 @@ class ClineOAuthClientProvider implements OAuthClientProvider {
 			token_endpoint_auth_method: "none",
 			grant_types: ["authorization_code", "refresh_token"],
 			response_types: ["code"],
-			client_name: "Cline",
-			client_uri: "https://cline.bot",
-			software_id: "cline",
+			client_name: "Kody",
+			client_uri: "https://kody.bot",
+			software_id: "kody",
 		}
 	}
 
@@ -313,7 +313,7 @@ export class McpOAuthManager {
 		}
 
 		// Create provider
-		const provider = new ClineOAuthClientProvider(serverName, serverUrl)
+		const provider = new KodyOAuthClientProvider(serverName, serverUrl)
 		await provider.initialize() // Sets the redirect URL
 		this.providers.set(key, provider)
 		return provider

@@ -1,6 +1,6 @@
 import { FireworksModelId, fireworksDefaultModelId, fireworksModels, ModelInfo } from "@shared/api"
 import OpenAI from "openai"
-import { ClineStorageMessage } from "@/shared/messages/content"
+import { KodyStorageMessage } from "@/shared/messages/content"
 import { createOpenAIClient } from "@/shared/net"
 import { ApiHandler, CommonApiHandlerOptions } from ".."
 import { withRetry } from "../retry"
@@ -40,7 +40,7 @@ export class FireworksHandler implements ApiHandler {
 	}
 
 	@withRetry()
-	async *createMessage(systemPrompt: string, messages: ClineStorageMessage[]): ApiStream {
+	async *createMessage(systemPrompt: string, messages: KodyStorageMessage[]): ApiStream {
 		const client = this.ensureClient()
 		const modelId = this.options.fireworksModelId ?? ""
 

@@ -1,6 +1,6 @@
 import type { OcaModelInfo } from "@shared/api"
-import type { OcaAuthState, OcaUserInfo } from "@shared/proto/index.cline"
-import { EmptyRequest, StringRequest } from "@shared/proto/index.cline"
+import type { OcaAuthState, OcaUserInfo } from "@shared/proto/index.kody"
+import { EmptyRequest, StringRequest } from "@shared/proto/index.kody"
 import { Mode } from "@shared/storage/types"
 import { VSCodeButton, VSCodeCheckbox, VSCodeLink, VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react"
 import React, { useCallback, useEffect, useRef, useState } from "react"
@@ -202,9 +202,8 @@ function useOcaModels({
 				if (!retry) {
 					await login() // prompt login
 					return tryRefresh(true) // retry once
-				} else {
-					setHasError(true)
 				}
+				setHasError(true)
 				return false
 			} finally {
 				setLoading(false)
@@ -304,7 +303,7 @@ export const OcaProvider = ({ isPopup, currentMode }: OcaProviderProps) => {
 						Please ask your IT administrator to set up Oracle Code Assist as a model provider. Oracle Employees,
 						please see the{" "}
 						<VSCodeLink
-							href="https://confluence.oraclecorp.com/confluence/display/AICODE/Oracle+Code+Assist+via+Cline"
+							href="https://confluence.oraclecorp.com/confluence/display/AICODE/Oracle+Code+Assist+via+Kody"
 							rel="noopener noreferrer"
 							target="_blank">
 							quickstart guide

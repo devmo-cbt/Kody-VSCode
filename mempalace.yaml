@@ -1,0 +1,34 @@
+wing: kody_vscode
+rooms:
+- name: testing_platform
+  description: Files from testing-platform/
+- name: evals
+  description: Files from evals/
+- name: locales
+  description: Files from locales/
+- name: proto
+  description: Files from proto/
+- name: standalone
+  description: Files from standalone/
+- name: testing
+  description: Files from tests/
+- name: walkthrough
+  description: Files from walkthrough/
+- name: documentation
+  description: Files from docs/
+- name: cli
+  description: Files from cli/
+- name: icons8_jellyfish_stamp
+  description: Files from icons8-jellyfish-stamp/
+- name: webview_ui
+  description: Files from webview-ui/
+- name: scripts
+  description: Files from scripts/
+- name: dist_standalone
+  description: Files from dist-standalone/
+- name: assets
+  description: Files from assets/
+- name: source
+  description: Files from src/
+- name: general
+  description: Files that don't fit other rooms

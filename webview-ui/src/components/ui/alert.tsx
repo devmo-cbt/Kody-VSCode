@@ -12,7 +12,7 @@ const alertVariants = cva(
 				default: "bg-banner-background text-banner-foreground border-foreground/20",
 				warning: "bg-warning/50 border-foreground/20 [&>svg]:text-warning-foreground",
 				danger: "bg-input-error-background text-foreground border-foreground/20 [&>svg]:text-input-error-foreground",
-				cline: "bg-cline/20 text-fg-cline border-cline [&>svg]:text-fg-cline",
+				kody: "bg-kody/20 text-fg-kody border-kody [&>svg]:text-fg-kody",
 			},
 		},
 		defaultVariants: {
@@ -75,4 +75,4 @@ const AlertDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttrib
 )
 AlertDescription.displayName = "AlertDescription"
 
-export { Alert, AlertTitle, AlertDescription }
+export { Alert, AlertDescription, AlertTitle }

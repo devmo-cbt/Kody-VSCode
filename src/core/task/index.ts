@@ -9,21 +9,21 @@ import { EnvironmentContextTracker } from "@core/context/context-tracking/Enviro
 import { FileContextTracker } from "@core/context/context-tracking/FileContextTracker"
 import { ModelContextTracker } from "@core/context/context-tracking/ModelContextTracker"
 import {
-	getGlobalClineRules,
-	getLocalClineRules,
-	refreshClineRulesToggles,
-} from "@core/context/instructions/user-instructions/cline-rules"
-import {
 	getLocalAgentsRules,
 	getLocalCursorRules,
 	getLocalWindsurfRules,
 	refreshExternalRulesToggles,
 } from "@core/context/instructions/user-instructions/external-rules"
+import {
+	getGlobalKodyRules,
+	getLocalKodyRules,
+	refreshKodyRulesToggles,
+} from "@core/context/instructions/user-instructions/kody-rules"
 import { sendPartialMessageEvent } from "@core/controller/ui/subscribeToPartialMessage"
 import { getHookModelContext } from "@core/hooks/hook-model-context"
 import { getHooksEnabledSafe } from "@core/hooks/hooks-utils"
 import { executePreCompactHookWithCleanup, HookCancellationError, HookExecution } from "@core/hooks/precompact-executor"
-import { ClineIgnoreController } from "@core/ignore/ClineIgnoreController"
+import { KodyIgnoreController } from "@core/ignore/KodyIgnoreController"
 import { parseMentions } from "@core/mentions"
 import { CommandPermissionController } from "@core/permissions"
 import { summarizeTask } from "@core/prompts/contextManagement"
@@ -34,7 +34,7 @@ import {
 	ensureTaskDirectoryExists,
 	GlobalFileNames,
 	getSavedApiConversationHistory,
-	getSavedClineMessages,
+	getSavedKodyMessages,
 } from "@core/storage/disk"
 import { releaseTaskLock } from "@core/task/TaskLockUtils"
 import { isMultiRootEnabled } from "@core/workspace/multi-root-utils"
@@ -56,13 +56,13 @@ import { ApiConfiguration } from "@shared/api"
 import { findLast, findLastIndex } from "@shared/array"
 import { combineApiRequests } from "@shared/combineApiRequests"
 import { combineCommandSequences } from "@shared/combineCommandSequences"
-import { ClineApiReqCancelReason, ClineApiReqInfo, ClineAsk, ClineMessage, ClineSay } from "@shared/ExtensionMessage"
+import { KodyApiReqCancelReason, KodyApiReqInfo, KodyAsk, KodyMessage, KodySay } from "@shared/ExtensionMessage"
 import { HistoryItem } from "@shared/HistoryItem"
 import { DEFAULT_LANGUAGE_SETTINGS, getLanguageKey, LanguageDisplay } from "@shared/Languages"
 import { USER_CONTENT_TAGS } from "@shared/messages/constants"
-import { convertClineMessageToProto } from "@shared/proto-conversions/cline-message"
-import { ClineDefaultTool, READ_ONLY_TOOLS } from "@shared/tools"
-import { ClineAskResponse } from "@shared/WebviewMessage"
+import { convertKodyMessageToProto } from "@shared/proto-conversions/kody-message"
+import { KodyDefaultTool, READ_ONLY_TOOLS } from "@shared/tools"
+import { KodyAskResponse } from "@shared/WebviewMessage"
 import {
 	isClaude4PlusModelFamily,
 	isGPT5ModelFamily,
@@ -89,25 +89,25 @@ import {
 	FullCommandExecutorConfig,
 	StandaloneTerminalManager,
 } from "@/integrations/terminal"
-import { ClineError, ClineErrorType, ErrorService } from "@/services/error"
+import { ErrorService, KodyError, KodyErrorType } from "@/services/error"
 import { telemetryService } from "@/services/telemetry"
-import { ClineClient } from "@/shared/cline"
+import { KodyClient } from "@/shared/kody"
 import {
-	ClineAssistantContent,
-	ClineContent,
-	ClineImageContentBlock,
-	ClineMessageModelInfo,
-	ClineStorageMessage,
-	ClineTextContentBlock,
-	ClineToolResponseContent,
-	ClineUserContent,
+	KodyAssistantContent,
+	KodyContent,
+	KodyImageContentBlock,
+	KodyMessageModelInfo,
+	KodyStorageMessage,
+	KodyTextContentBlock,
+	KodyToolResponseContent,
+	KodyUserContent,
 } from "@/shared/messages"
-import { ApiFormat } from "@/shared/proto/cline/models"
 import { ShowMessageType } from "@/shared/proto/index.host"
+import { ApiFormat } from "@/shared/proto/kody/models"
 import { Logger } from "@/shared/services/Logger"
 import { Session } from "@/shared/services/Session"
 import { RuleContextBuilder } from "../context/instructions/user-instructions/RuleContextBuilder"
-import { ensureLocalClineDirExists } from "../context/instructions/user-instructions/rule-helpers"
+import { ensureLocalKodyDirExists } from "../context/instructions/user-instructions/rule-helpers"
 import { discoverSkills, getAvailableSkills } from "../context/instructions/user-instructions/skills"
 import { refreshWorkflowToggles } from "../context/instructions/user-instructions/workflows"
 import { Controller } from "../controller"
@@ -130,7 +130,7 @@ import { ToolExecutor } from "./ToolExecutor"
 import { detectAvailableCliTools, extractProviderDomainFromUrl, updateApiReqMsg } from "./utils"
 import { buildUserFeedbackContent } from "./utils/buildUserFeedbackContent"
 
-export type ToolResponse = ClineToolResponseContent
+export type ToolResponse = KodyToolResponseContent
 
 type TaskParams = {
 	controller: Controller
@@ -222,7 +222,7 @@ export class Task {
 	private diffViewProvider: DiffViewProvider
 	public checkpointManager?: ICheckpointManager
 	private initialCheckpointCommitPromise?: Promise<string | undefined>
-	private clineIgnoreController: ClineIgnoreController
+	private kodyIgnoreController: KodyIgnoreController
 	private commandPermissionController: CommandPermissionController
 	private toolExecutor: ToolExecutor
 	/**
@@ -313,7 +313,7 @@ export class Task {
 		this.postStateToWebview = postStateToWebview
 		this.reinitExistingTaskFromId = reinitExistingTaskFromId
 		this.cancelTask = cancelTask
-		this.clineIgnoreController = new ClineIgnoreController(cwd)
+		this.kodyIgnoreController = new KodyIgnoreController(cwd)
 		this.commandPermissionController = new CommandPermissionController()
 		this.taskLockAcquired = taskLockAcquired
 		// Determine terminal execution mode and create appropriate terminal manager
@@ -457,11 +457,11 @@ export class Task {
 			...apiConfiguration,
 			ulid: this.ulid,
 			onRetryAttempt: async (attempt: number, maxRetries: number, delay: number, error: any) => {
-				const clineMessages = this.messageStateHandler.getClineMessages()
-				const lastApiReqStartedIndex = findLastIndex(clineMessages, (m) => m.say === "api_req_started")
+				const kodyMessages = this.messageStateHandler.getKodyMessages()
+				const lastApiReqStartedIndex = findLastIndex(kodyMessages, (m) => m.say === "api_req_started")
 				if (lastApiReqStartedIndex !== -1) {
 					try {
-						const currentApiReqInfo: ClineApiReqInfo = JSON.parse(clineMessages[lastApiReqStartedIndex].text || "{}")
+						const currentApiReqInfo: KodyApiReqInfo = JSON.parse(kodyMessages[lastApiReqStartedIndex].text || "{}")
 						currentApiReqInfo.retryStatus = {
 							attempt: attempt, // attempt is already 1-indexed from retry.ts
 							maxAttempts: maxRetries, // total attempts
@@ -471,7 +471,7 @@ export class Task {
 						// Clear previous cancelReason and streamingFailedMessage if we are retrying
 						delete currentApiReqInfo.cancelReason
 						delete currentApiReqInfo.streamingFailedMessage
-						await this.messageStateHandler.updateClineMessage(lastApiReqStartedIndex, {
+						await this.messageStateHandler.updateKodyMessage(lastApiReqStartedIndex, {
 							text: JSON.stringify(currentApiReqInfo),
 						})
 
@@ -533,7 +533,7 @@ export class Task {
 		const commandExecutorCallbacks: CommandExecutorCallbacks = {
 			say: this.say.bind(this) as CommandExecutorCallbacks["say"],
 			ask: async (type: string, text?: string, partial?: boolean) => {
-				const result = await this.ask(type as ClineAsk, text, partial)
+				const result = await this.ask(type as KodyAsk, text, partial)
 				return {
 					response: result.response,
 					text: result.text,
@@ -543,13 +543,13 @@ export class Task {
 			},
 			updateBackgroundCommandState: (isRunning: boolean) =>
 				this.controller.updateBackgroundCommandState(isRunning, this.taskId),
-			updateClineMessage: async (index: number, updates: { commandCompleted?: boolean; text?: string }) => {
-				await this.messageStateHandler.updateClineMessage(index, updates)
+			updateKodyMessage: async (index: number, updates: { commandCompleted?: boolean; text?: string }) => {
+				await this.messageStateHandler.updateKodyMessage(index, updates)
 			},
-			getClineMessages: () => this.messageStateHandler.getClineMessages() as Array<{ ask?: string; say?: string }>,
+			getKodyMessages: () => this.messageStateHandler.getKodyMessages() as Array<{ ask?: string; say?: string }>,
 			addToUserMessageContent: (content: { type: string; text: string }) => {
-				// Cast to ClineTextContentBlock which is compatible with ClineContent
-				this.taskState.userMessageContent.push({ type: "text", text: content.text } as ClineTextContentBlock)
+				// Cast to KodyTextContentBlock which is compatible with KodyContent
+				this.taskState.userMessageContent.push({ type: "text", text: content.text } as KodyTextContentBlock)
 			},
 		}
 
@@ -557,13 +557,13 @@ export class Task {
 
 		// Note: the scheduler's getDelayMs reads this.isRemoteWorkspaceEnvironment which is
 		// populated asynchronously by remoteWorkspaceDetectionPromise. The promise is awaited
-		// before streaming begins (in recursivelyMakeClineRequests) so the cadence is always
+		// before streaming begins (in recursivelyMakeKodyRequests) so the cadence is always
 		// correct by the time the first flush is scheduled.
 		this.presentationScheduler = new TaskPresentationScheduler({
 			flush: () => this.presentAssistantMessage(),
 			getDelayMs: (priority) => {
 				if (!this.remoteWorkspaceDetectionSettled) {
-					// This should never fire in production because recursivelyMakeClineRequests
+					// This should never fire in production because recursivelyMakeKodyRequests
 					// awaits remoteWorkspaceDetectionPromise before the first flush is scheduled.
 					// If it does fire, we fall back to the local cadence (safe default).
 					Logger.warn(
@@ -584,7 +584,7 @@ export class Task {
 			this.diffViewProvider,
 			this.mcpHub,
 			this.fileContextTracker,
-			this.clineIgnoreController,
+			this.kodyIgnoreController,
 			this.commandPermissionController,
 			this.contextManager,
 			this.stateManager,
@@ -655,11 +655,11 @@ export class Task {
 
 	// partial has three valid states true (partial message), false (completion of partial message), undefined (individual complete message)
 	async ask(
-		type: ClineAsk,
+		type: KodyAsk,
 		text?: string,
 		partial?: boolean,
 	): Promise<{
-		response: ClineAskResponse
+		response: KodyAskResponse
 		text?: string
 		images?: string[]
 		files?: string[]
@@ -671,23 +671,23 @@ export class Task {
 		}
 		let askTs: number
 		if (partial !== undefined) {
-			const clineMessages = this.messageStateHandler.getClineMessages()
-			const lastMessage = clineMessages.at(-1)
-			const lastMessageIndex = clineMessages.length - 1
+			const kodyMessages = this.messageStateHandler.getKodyMessages()
+			const lastMessage = kodyMessages.at(-1)
+			const lastMessageIndex = kodyMessages.length - 1
 
 			const isUpdatingPreviousPartial =
 				lastMessage && lastMessage.partial && lastMessage.type === "ask" && lastMessage.ask === type
 			if (partial) {
 				if (isUpdatingPreviousPartial) {
 					// existing partial message, so update it
-					await this.messageStateHandler.updateClineMessage(lastMessageIndex, {
+					await this.messageStateHandler.updateKodyMessage(lastMessageIndex, {
 						text,
 						partial,
 					})
 					// todo be more efficient about saving and posting only new data or one whole message at a time so ignore partial for saves, and only post parts of partial message instead of whole array in new listener
-					// await this.saveClineMessagesAndUpdateHistory()
+					// await this.saveKodyMessagesAndUpdateHistory()
 					// await this.postStateToWebview()
-					const protoMessage = convertClineMessageToProto(lastMessage)
+					const protoMessage = convertKodyMessageToProto(lastMessage)
 					await sendPartialMessageEvent(protoMessage)
 					throw new Error("Current ask promise was ignored 1")
 				}
@@ -697,7 +697,7 @@ export class Task {
 				// this.askResponseImages = undefined
 				askTs = Date.now()
 				this.taskState.lastMessageTs = askTs
-				await this.messageStateHandler.addToClineMessages({
+				await this.messageStateHandler.addToKodyMessages({
 					ts: askTs,
 					type: "ask",
 					ask: type,
@@ -724,12 +724,12 @@ export class Task {
 				askTs = lastMessage.ts
 				this.taskState.lastMessageTs = askTs
 				// lastMessage.ts = askTs
-				await this.messageStateHandler.updateClineMessage(lastMessageIndex, {
+				await this.messageStateHandler.updateKodyMessage(lastMessageIndex, {
 					text,
 					partial: false,
 				})
 				// await this.postStateToWebview()
-				const protoMessage = convertClineMessageToProto(lastMessage)
+				const protoMessage = convertKodyMessageToProto(lastMessage)
 				await sendPartialMessageEvent(protoMessage)
 			} else {
 				// this is a new partial=false message, so add it like normal
@@ -739,7 +739,7 @@ export class Task {
 				this.taskState.askResponseFiles = undefined
 				askTs = Date.now()
 				this.taskState.lastMessageTs = askTs
-				await this.messageStateHandler.addToClineMessages({
+				await this.messageStateHandler.addToKodyMessages({
 					ts: askTs,
 					type: "ask",
 					ask: type,
@@ -749,14 +749,14 @@ export class Task {
 			}
 		} else {
 			// this is a new non-partial message, so add it like normal
-			// const lastMessage = this.clineMessages.at(-1)
+			// const lastMessage = this.kodyMessages.at(-1)
 			this.taskState.askResponse = undefined
 			this.taskState.askResponseText = undefined
 			this.taskState.askResponseImages = undefined
 			this.taskState.askResponseFiles = undefined
 			askTs = Date.now()
 			this.taskState.lastMessageTs = askTs
-			await this.messageStateHandler.addToClineMessages({
+			await this.messageStateHandler.addToKodyMessages({
 				ts: askTs,
 				type: "ask",
 				ask: type,
@@ -835,55 +835,49 @@ export class Task {
 		}
 	}
 
-	async handleWebviewAskResponse(askResponse: ClineAskResponse, text?: string, images?: string[], files?: string[]) {
+	async handleWebviewAskResponse(askResponse: KodyAskResponse, text?: string, images?: string[], files?: string[]) {
 		this.taskState.askResponse = askResponse
 		this.taskState.askResponseText = text
 		this.taskState.askResponseImages = images
 		this.taskState.askResponseFiles = files
 	}
 
-	async say(
-		type: ClineSay,
-		text?: string,
-		images?: string[],
-		files?: string[],
-		partial?: boolean,
-	): Promise<number | undefined> {
+	async say(type: KodySay, text?: string, images?: string[], files?: string[], partial?: boolean): Promise<number | undefined> {
 		// Allow hook messages even when aborted to enable proper cleanup
 		if (this.taskState.abort && type !== "hook_status" && type !== "hook_output_stream") {
 			throw new Error("Agent instance aborted")
 		}
 
 		const providerInfo = this.getCurrentProviderInfo()
-		const modelInfo: ClineMessageModelInfo = {
+		const modelInfo: KodyMessageModelInfo = {
 			providerId: providerInfo.providerId,
 			modelId: providerInfo.model.id,
 			mode: providerInfo.mode,
 		}
 
 		if (partial !== undefined) {
-			const lastMessage = this.messageStateHandler.getClineMessages().at(-1)
+			const lastMessage = this.messageStateHandler.getKodyMessages().at(-1)
 			const isUpdatingPreviousPartial =
 				lastMessage && lastMessage.partial && lastMessage.type === "say" && lastMessage.say === type
 			if (partial) {
 				if (isUpdatingPreviousPartial) {
 					// existing partial message, so update it
-					const lastIndex = this.messageStateHandler.getClineMessages().length - 1
-					await this.messageStateHandler.updateClineMessage(lastIndex, {
+					const lastIndex = this.messageStateHandler.getKodyMessages().length - 1
+					await this.messageStateHandler.updateKodyMessage(lastIndex, {
 						text,
 						images,
 						files,
 						partial,
 					})
 
-					const protoMessage = convertClineMessageToProto(lastMessage)
+					const protoMessage = convertKodyMessageToProto(lastMessage)
 					await sendPartialMessageEvent(protoMessage)
 					return undefined
 				}
 				// this is a new partial message, so add it with partial state
 				const sayTs = Date.now()
 				this.taskState.lastMessageTs = sayTs
-				await this.messageStateHandler.addToClineMessages({
+				await this.messageStateHandler.addToKodyMessages({
 					ts: sayTs,
 					type: "say",
 					say: type,
@@ -900,9 +894,9 @@ export class Task {
 			if (isUpdatingPreviousPartial) {
 				// this is the complete version of a previously partial message, so replace the partial with the complete version
 				this.taskState.lastMessageTs = lastMessage.ts
-				const lastIndex = this.messageStateHandler.getClineMessages().length - 1
-				// updateClineMessage emits the change event and saves to disk
-				await this.messageStateHandler.updateClineMessage(lastIndex, {
+				const lastIndex = this.messageStateHandler.getKodyMessages().length - 1
+				// updateKodyMessage emits the change event and saves to disk
+				await this.messageStateHandler.updateKodyMessage(lastIndex, {
 					text,
 					images,
 					files,
@@ -910,14 +904,14 @@ export class Task {
 				})
 
 				// await this.postStateToWebview()
-				const protoMessage = convertClineMessageToProto(lastMessage)
+				const protoMessage = convertKodyMessageToProto(lastMessage)
 				await sendPartialMessageEvent(protoMessage) // more performant than an entire postStateToWebview
 				return undefined
 			}
 			// this is a new partial=false message, so add it like normal
 			const sayTs = Date.now()
 			this.taskState.lastMessageTs = sayTs
-			await this.messageStateHandler.addToClineMessages({
+			await this.messageStateHandler.addToKodyMessages({
 				ts: sayTs,
 				type: "say",
 				say: type,
@@ -932,7 +926,7 @@ export class Task {
 		// this is a new non-partial message, so add it like normal
 		const sayTs = Date.now()
 		this.taskState.lastMessageTs = sayTs
-		await this.messageStateHandler.addToClineMessages({
+		await this.messageStateHandler.addToKodyMessages({
 			ts: sayTs,
 			type: "say",
 			say: type,
@@ -945,7 +939,7 @@ export class Task {
 		return sayTs
 	}
 
-	async sayAndCreateMissingParamError(toolName: ClineDefaultTool, paramName: string, relPath?: string) {
+	async sayAndCreateMissingParamError(toolName: KodyDefaultTool, paramName: string, relPath?: string) {
 		await this.say(
 			"error",
 			`Tried to use ${toolName}${
@@ -955,12 +949,12 @@ export class Task {
 		return formatResponse.toolError(formatResponse.missingToolParameterError(paramName))
 	}
 
-	async removeLastPartialMessageIfExistsWithType(type: "ask" | "say", askOrSay: ClineAsk | ClineSay) {
-		const clineMessages = this.messageStateHandler.getClineMessages()
-		const lastMessage = clineMessages.at(-1)
+	async removeLastPartialMessageIfExistsWithType(type: "ask" | "say", askOrSay: KodyAsk | KodySay) {
+		const kodyMessages = this.messageStateHandler.getKodyMessages()
+		const lastMessage = kodyMessages.at(-1)
 		if (lastMessage?.partial && lastMessage.type === type && (lastMessage.ask === askOrSay || lastMessage.say === askOrSay)) {
-			this.messageStateHandler.setClineMessages(clineMessages.slice(0, -1))
-			await this.messageStateHandler.saveClineMessagesAndUpdateHistory()
+			this.messageStateHandler.setKodyMessages(kodyMessages.slice(0, -1))
+			await this.messageStateHandler.saveKodyMessagesAndUpdateHistory()
 		}
 	}
 
@@ -997,7 +991,7 @@ export class Task {
 		this.taskState.didFinishAbortingStream = true
 
 		// Save conversation state to disk
-		await this.messageStateHandler.saveClineMessagesAndUpdateHistory()
+		await this.messageStateHandler.saveKodyMessagesAndUpdateHistory()
 		await this.messageStateHandler.overwriteApiConversationHistory(this.messageStateHandler.getApiConversationHistory())
 
 		// Update UI
@@ -1012,7 +1006,7 @@ export class Task {
 	 * @param apiConversationHistory The full API conversation history
 	 * @returns Tuple with start and end indices for the deleted range
 	 */
-	private calculatePreCompactDeletedRange(apiConversationHistory: ClineStorageMessage[]): [number, number] {
+	private calculatePreCompactDeletedRange(apiConversationHistory: KodyStorageMessage[]): [number, number] {
 		const newDeletedRange = this.contextManager.getNextTruncationRange(
 			apiConversationHistory,
 			this.taskState.conversationHistoryDeletedRange,
@@ -1023,7 +1017,7 @@ export class Task {
 	}
 
 	private async runUserPromptSubmitHook(
-		userContent: ClineContent[],
+		userContent: KodyContent[],
 		_context: "initial_task" | "resume" | "feedback",
 	): Promise<{ cancel?: boolean; wasCancelled?: boolean; contextModification?: string; errorMessage?: string }> {
 		const hooksEnabled = getHooksEnabledSafe(this.stateManager.getGlobalSettingsKey("hooksEnabled"))
@@ -1060,7 +1054,7 @@ export class Task {
 			// Set flag to allow Controller.cancelTask() to proceed
 			this.taskState.didFinishAbortingStream = true
 			// Save BOTH files so Controller.cancelTask() can find the task
-			await this.messageStateHandler.saveClineMessagesAndUpdateHistory()
+			await this.messageStateHandler.saveKodyMessagesAndUpdateHistory()
 			await this.messageStateHandler.overwriteApiConversationHistory(this.messageStateHandler.getApiConversationHistory())
 			await this.postStateToWebview()
 		}
@@ -1076,14 +1070,14 @@ export class Task {
 
 	public async startTask(task?: string, images?: string[], files?: string[]): Promise<void> {
 		try {
-			await this.clineIgnoreController.initialize()
+			await this.kodyIgnoreController.initialize()
 		} catch (error) {
-			Logger.error("Failed to initialize ClineIgnoreController:", error)
+			Logger.error("Failed to initialize KodyIgnoreController:", error)
 			// Optionally, inform the user or handle the error appropriately
 		}
-		// conversationHistory (for API) and clineMessages (for webview) need to be in sync
-		// if the extension process were killed, then on restart the clineMessages might not be empty, so we need to set it to [] when we create a new Cline client (otherwise webview would show stale messages from previous session)
-		this.messageStateHandler.setClineMessages([])
+		// conversationHistory (for API) and kodyMessages (for webview) need to be in sync
+		// if the extension process were killed, then on restart the kodyMessages might not be empty, so we need to set it to [] when we create a new Kody client (otherwise webview would show stale messages from previous session)
+		this.messageStateHandler.setKodyMessages([])
 		this.messageStateHandler.setApiConversationHistory([])
 
 		await this.postStateToWebview()
@@ -1092,9 +1086,9 @@ export class Task {
 
 		this.taskState.isInitialized = true
 
-		const imageBlocks: ClineImageContentBlock[] = formatResponse.imageBlocks(images)
+		const imageBlocks: KodyImageContentBlock[] = formatResponse.imageBlocks(images)
 
-		const userContent: ClineUserContent[] = [
+		const userContent: KodyUserContent[] = [
 			{
 				type: "text",
 				text: `<task>\n${task}\n</task>`,
@@ -1199,38 +1193,38 @@ export class Task {
 
 	public async resumeTaskFromHistory() {
 		try {
-			await this.clineIgnoreController.initialize()
+			await this.kodyIgnoreController.initialize()
 		} catch (error) {
-			Logger.error("Failed to initialize ClineIgnoreController:", error)
+			Logger.error("Failed to initialize KodyIgnoreController:", error)
 			// Optionally, inform the user or handle the error appropriately
 		}
 
-		const savedClineMessages = await getSavedClineMessages(this.taskId)
+		const savedKodyMessages = await getSavedKodyMessages(this.taskId)
 
 		// Remove any resume messages that may have been added before
 
 		const lastRelevantMessageIndex = findLastIndex(
-			savedClineMessages,
+			savedKodyMessages,
 			(m) => !(m.ask === "resume_task" || m.ask === "resume_completed_task"),
 		)
 		if (lastRelevantMessageIndex !== -1) {
-			savedClineMessages.splice(lastRelevantMessageIndex + 1)
+			savedKodyMessages.splice(lastRelevantMessageIndex + 1)
 		}
 
 		// since we don't use api_req_finished anymore, we need to check if the last api_req_started has a cost value, if it doesn't and no cancellation reason to present, then we remove it since it indicates an api request without any partial content streamed
-		const lastApiReqStartedIndex = findLastIndex(savedClineMessages, (m) => m.type === "say" && m.say === "api_req_started")
+		const lastApiReqStartedIndex = findLastIndex(savedKodyMessages, (m) => m.type === "say" && m.say === "api_req_started")
 		if (lastApiReqStartedIndex !== -1) {
-			const lastApiReqStarted = savedClineMessages[lastApiReqStartedIndex]
-			const { cost, cancelReason }: ClineApiReqInfo = JSON.parse(lastApiReqStarted.text || "{}")
+			const lastApiReqStarted = savedKodyMessages[lastApiReqStartedIndex]
+			const { cost, cancelReason }: KodyApiReqInfo = JSON.parse(lastApiReqStarted.text || "{}")
 			if (cost === undefined && cancelReason === undefined) {
-				savedClineMessages.splice(lastApiReqStartedIndex, 1)
+				savedKodyMessages.splice(lastApiReqStartedIndex, 1)
 			}
 		}
 
-		await this.messageStateHandler.overwriteClineMessages(savedClineMessages)
-		this.messageStateHandler.setClineMessages(await getSavedClineMessages(this.taskId))
+		await this.messageStateHandler.overwriteKodyMessages(savedKodyMessages)
+		this.messageStateHandler.setKodyMessages(await getSavedKodyMessages(this.taskId))
 
-		// Now present the cline messages to the user and ask if they want to resume (NOTE: we ran into a bug before where the apiconversationhistory wouldn't be initialized when opening a old task, and it was because we were waiting for resume)
+		// Now present the kody messages to the user and ask if they want to resume (NOTE: we ran into a bug before where the apiconversationhistory wouldn't be initialized when opening a old task, and it was because we were waiting for resume)
 		// This is important in case the user deletes messages without resuming the task first
 		const savedApiConversationHistory = await getSavedApiConversationHistory(this.taskId)
 
@@ -1240,14 +1234,14 @@ export class Task {
 		await ensureTaskDirectoryExists(this.taskId)
 		await this.contextManager.initializeContextHistory(await ensureTaskDirectoryExists(this.taskId))
 
-		const lastClineMessage = this.messageStateHandler
-			.getClineMessages()
+		const lastKodyMessage = this.messageStateHandler
+			.getKodyMessages()
 			.slice()
 			.reverse()
 			.find((m) => !(m.ask === "resume_task" || m.ask === "resume_completed_task")) // could be multiple resume tasks
 
-		let askType: ClineAsk
-		if (lastClineMessage?.ask === "completion_result") {
+		let askType: KodyAsk
+		if (lastKodyMessage?.ask === "completion_result") {
 			askType = "resume_completed_task"
 		} else {
 			askType = "resume_task"
@@ -1259,12 +1253,12 @@ export class Task {
 		const { response, text, images, files } = await this.ask(askType) // calls poststatetowebview
 
 		// Initialize newUserContent array for hook context
-		const newUserContent: ClineContent[] = []
+		const newUserContent: KodyContent[] = []
 
 		// Run TaskResume hook AFTER user clicks resume button
 		const hooksEnabled = getHooksEnabledSafe(this.stateManager.getGlobalSettingsKey("hooksEnabled"))
 		if (hooksEnabled) {
-			const clineMessages = this.messageStateHandler.getClineMessages()
+			const kodyMessages = this.messageStateHandler.getKodyMessages()
 			const taskResumeResult = await executeHook({
 				hookName: "TaskResume",
 				hookInput: {
@@ -1274,8 +1268,8 @@ export class Task {
 							ulid: this.ulid,
 						},
 						previousState: {
-							lastMessageTs: lastClineMessage?.ts?.toString() || "",
-							messageCount: clineMessages.length.toString(),
+							lastMessageTs: lastKodyMessage?.ts?.toString() || "",
+							messageCount: kodyMessages.length.toString(),
 							conversationHistoryDeleted: (this.taskState.conversationHistoryDeletedRange !== undefined).toString(),
 						},
 					},
@@ -1326,22 +1320,22 @@ export class Task {
 			responseFiles = files
 		}
 
-		// need to make sure that the api conversation history can be resumed by the api, even if it goes out of sync with cline messages
+		// need to make sure that the api conversation history can be resumed by the api, even if it goes out of sync with kody messages
 
 		// Use the already-loaded API conversation history from memory instead of reloading from disk
 		// This prevents issues where the file might be empty or stale after hook execution
 		const existingApiConversationHistory = this.messageStateHandler.getApiConversationHistory()
 
 		// Remove the last user message so we can update it with the resume message
-		let modifiedOldUserContent: ClineContent[] // either the last message if its user message, or the user message before the last (assistant) message
-		let modifiedApiConversationHistory: ClineStorageMessage[] // need to remove the last user message to replace with new modified user message
+		let modifiedOldUserContent: KodyContent[] // either the last message if its user message, or the user message before the last (assistant) message
+		let modifiedApiConversationHistory: KodyStorageMessage[] // need to remove the last user message to replace with new modified user message
 		if (existingApiConversationHistory.length > 0) {
 			const lastMessage = existingApiConversationHistory[existingApiConversationHistory.length - 1]
 			if (lastMessage.role === "assistant") {
 				modifiedApiConversationHistory = [...existingApiConversationHistory]
 				modifiedOldUserContent = []
 			} else if (lastMessage.role === "user") {
-				const existingUserContent: ClineContent[] = Array.isArray(lastMessage.content)
+				const existingUserContent: KodyContent[] = Array.isArray(lastMessage.content)
 					? lastMessage.content
 					: [{ type: "text", text: lastMessage.content }]
 				modifiedApiConversationHistory = existingApiConversationHistory.slice(0, -1)
@@ -1360,7 +1354,7 @@ export class Task {
 		newUserContent.push(...modifiedOldUserContent)
 
 		const agoText = (() => {
-			const timestamp = lastClineMessage?.ts ?? Date.now()
+			const timestamp = lastKodyMessage?.ts ?? Date.now()
 			const now = Date.now()
 			const diff = now - timestamp
 			const minutes = Math.floor(diff / 60000)
@@ -1379,7 +1373,7 @@ export class Task {
 			return "just now"
 		})()
 
-		const wasRecent = lastClineMessage?.ts && Date.now() - lastClineMessage.ts < 30_000
+		const wasRecent = lastKodyMessage?.ts && Date.now() - lastKodyMessage.ts < 30_000
 
 		// Check if there are pending file context warnings before calling taskResumption
 		const pendingContextWarning = await this.fileContextTracker.retrieveAndClearPendingFileContextWarning()
@@ -1469,14 +1463,14 @@ export class Task {
 		await this.initiateTaskLoop(newUserContent)
 	}
 
-	private async initiateTaskLoop(userContent: ClineContent[]): Promise<void> {
+	private async initiateTaskLoop(userContent: KodyContent[]): Promise<void> {
 		let nextUserContent = userContent
 		let includeFileDetails = true
 		while (!this.taskState.abort) {
-			const didEndLoop = await this.recursivelyMakeClineRequests(nextUserContent, includeFileDetails)
+			const didEndLoop = await this.recursivelyMakeKodyRequests(nextUserContent, includeFileDetails)
 			includeFileDetails = false // we only need file details the first time
 
-			//  The way this agentic loop works is that cline will be given a task that he then calls tools to complete. unless there's an attempt_completion call, we keep responding back to him with his tool's responses until he either attempt_completion or does not use anymore tools. If he does not use anymore tools, we ask him to consider if he's completed the task and then call attempt_completion, otherwise proceed with completing the task.
+			//  The way this agentic loop works is that kody will be given a task that he then calls tools to complete. unless there's an attempt_completion call, we keep responding back to him with his tool's responses until he either attempt_completion or does not use anymore tools. If he does not use anymore tools, we ask him to consider if he's completed the task and then call attempt_completion, otherwise proceed with completing the task.
 
 			//const totalCost = this.calculateApiCost(totalInputTokens, totalOutputTokens)
 			if (didEndLoop) {
@@ -1486,7 +1480,7 @@ export class Task {
 			}
 			// this.say(
 			// 	"tool",
-			// 	"Cline responded with only text blocks but has not called attempt_completion yet. Forcing him to continue with task..."
+			// 	"Kody responded with only text blocks but has not called attempt_completion yet. Forcing him to continue with task..."
 			// )
 			nextUserContent = [
 				{
@@ -1527,8 +1521,8 @@ export class Task {
 		}
 
 		// Check if we're at a button-only state (no active work, just waiting for user action)
-		const clineMessages = this.messageStateHandler.getClineMessages()
-		const lastMessage = clineMessages.at(-1)
+		const kodyMessages = this.messageStateHandler.getKodyMessages()
+		const lastMessage = kodyMessages.at(-1)
 		const isAtButtonOnlyState =
 			lastMessage?.type === "ask" &&
 			(lastMessage.ask === "resume_task" ||
@@ -1612,14 +1606,14 @@ export class Task {
 
 					// TaskCancel completed successfully
 					// Present resume button after successful TaskCancel hook
-					const lastClineMessage = this.messageStateHandler
-						.getClineMessages()
+					const lastKodyMessage = this.messageStateHandler
+						.getKodyMessages()
 						.slice()
 						.reverse()
 						.find((m) => !(m.ask === "resume_task" || m.ask === "resume_completed_task"))
 
-					let askType: ClineAsk
-					if (lastClineMessage?.ask === "completion_result") {
+					let askType: KodyAsk
+					if (lastKodyMessage?.ask === "completion_result") {
 						askType = "resume_completed_task"
 					} else {
 						askType = "resume_task"
@@ -1640,7 +1634,7 @@ export class Task {
 
 			// PHASE 5: Immediately update UI to reflect abort state
 			try {
-				await this.messageStateHandler.saveClineMessagesAndUpdateHistory()
+				await this.messageStateHandler.saveKodyMessagesAndUpdateHistory()
 				await this.postStateToWebview()
 			} catch (error) {
 				Logger.error("Failed to post state after setting abort flag", error)
@@ -1663,7 +1657,7 @@ export class Task {
 			this.terminalManager.disposeAll()
 			this.urlContentFetcher.closeBrowser()
 			await this.browserSession.dispose()
-			this.clineIgnoreController.dispose()
+			this.kodyIgnoreController.dispose()
 			this.fileContextTracker.dispose()
 			// need to await for when we want to make sure directories/files are reverted before
 			// re-starting the task from a checkpoint
@@ -1700,7 +1694,7 @@ export class Task {
 		command: string,
 		timeoutSeconds: number | undefined,
 		options?: CommandExecutionOptions,
-	): Promise<[boolean, ClineToolResponseContent]> {
+	): Promise<[boolean, KodyToolResponseContent]> {
 		return this.commandExecutor.execute(command, timeoutSeconds, options)
 	}
 
@@ -1729,8 +1723,8 @@ export class Task {
 			abortController.abort()
 
 			// Update hook message status to "cancelled"
-			const clineMessages = this.messageStateHandler.getClineMessages()
-			const hookMessageIndex = clineMessages.findIndex((m) => m.ts === messageTs)
+			const kodyMessages = this.messageStateHandler.getKodyMessages()
+			const hookMessageIndex = kodyMessages.findIndex((m) => m.ts === messageTs)
 			if (hookMessageIndex !== -1) {
 				const cancelledMetadata = {
 					hookName,
@@ -1738,7 +1732,7 @@ export class Task {
 					status: "cancelled",
 					exitCode: 130, // Standard SIGTERM exit code
 				}
-				await this.messageStateHandler.updateClineMessage(hookMessageIndex, {
+				await this.messageStateHandler.updateKodyMessage(hookMessageIndex, {
 					text: JSON.stringify(cancelledMetadata),
 				})
 			}
@@ -1777,7 +1771,7 @@ export class Task {
 				? path.isAbsolute(configuredDir)
 					? configuredDir
 					: path.resolve(this.cwd, configuredDir)
-				: path.resolve(this.cwd, ".cline-prompt-artifacts")
+				: path.resolve(this.cwd, ".kody-prompt-artifacts")
 
 			await fs.mkdir(artifactDir, { recursive: true })
 
@@ -1835,7 +1829,7 @@ export class Task {
 					apiConversationHistory,
 					conversationHistoryDeletedRange: this.taskState.conversationHistoryDeletedRange,
 					contextManager: this.contextManager,
-					clineMessages: this.messageStateHandler.getClineMessages(),
+					kodyMessages: this.messageStateHandler.getKodyMessages(),
 					messageStateHandler: this.messageStateHandler,
 					compactionStrategy: "standard-truncation-lastquarter",
 					deletedRange,
@@ -1871,7 +1865,7 @@ export class Task {
 
 		this.taskState.conversationHistoryDeletedRange = newDeletedRange
 
-		await this.messageStateHandler.saveClineMessagesAndUpdateHistory()
+		await this.messageStateHandler.saveKodyMessagesAndUpdateHistory()
 		await this.contextManager.triggerApplyStandardContextTruncationNoticeChange(
 			Date.now(),
 			await ensureTaskDirectoryExists(this.taskId),
@@ -1892,10 +1886,10 @@ export class Task {
 		const providerInfo = this.getCurrentProviderInfo()
 		const host = await HostProvider.env.getHostVersion({})
 		const ide = host?.platform || "Unknown"
-		const isCliEnvironment = host.clineType === ClineClient.Cli
+		const isCliEnvironment = host.kodyType === KodyClient.Cli
 		const browserSettings = this.stateManager.getGlobalSettingsKey("browserSettings")
 		const disableBrowserTool = browserSettings.disableToolUse ?? false
-		// cline browser tool uses image recognition for navigation (requires model image support).
+		// kody browser tool uses image recognition for navigation (requires model image support).
 		const modelSupportsBrowserUse = providerInfo.model.info.supportsImages ?? false
 
 		const supportsBrowserUse = modelSupportsBrowserUse && !disableBrowserTool // only enable browser use if the model supports it and the user hasn't disabled it
@@ -1906,7 +1900,7 @@ export class Task {
 				? `# Preferred Language\n\nSpeak in ${preferredLanguage}.`
 				: ""
 
-		const { globalToggles, localToggles } = await refreshClineRulesToggles(this.controller, this.cwd)
+		const { globalToggles, localToggles } = await refreshKodyRulesToggles(this.controller, this.cwd)
 		const { windsurfLocalToggles, cursorLocalToggles, agentsLocalToggles } = await refreshExternalRulesToggles(
 			this.controller,
 			this.cwd,
@@ -1918,12 +1912,12 @@ export class Task {
 			workspaceManager: this.workspaceManager,
 		})
 
-		const globalClineRulesFilePath = await ensureRulesDirectoryExists()
-		const globalRules = await getGlobalClineRules(globalClineRulesFilePath, globalToggles, { evaluationContext })
-		const globalClineRulesFileInstructions = globalRules.instructions
+		const globalKodyRulesFilePath = await ensureRulesDirectoryExists()
+		const globalRules = await getGlobalKodyRules(globalKodyRulesFilePath, globalToggles, { evaluationContext })
+		const globalKodyRulesFileInstructions = globalRules.instructions
 
-		const localRules = await getLocalClineRules(this.cwd, localToggles, { evaluationContext })
-		const localClineRulesFileInstructions = localRules.instructions
+		const localRules = await getLocalKodyRules(this.cwd, localToggles, { evaluationContext })
+		const localKodyRulesFileInstructions = localRules.instructions
 		const [localCursorRulesFileInstructions, localCursorRulesDirInstructions] = await getLocalCursorRules(
 			this.cwd,
 			cursorLocalToggles,
@@ -1932,10 +1926,10 @@ export class Task {
 
 		const localAgentsRulesFileInstructions = await getLocalAgentsRules(this.cwd, agentsLocalToggles)
 
-		const clineIgnoreContent = this.clineIgnoreController.clineIgnoreContent
-		let clineIgnoreInstructions: string | undefined
-		if (clineIgnoreContent) {
-			clineIgnoreInstructions = formatResponse.clineIgnoreInstructions(clineIgnoreContent)
+		const kodyIgnoreContent = this.kodyIgnoreController.kodyIgnoreContent
+		let kodyIgnoreInstructions: string | undefined
+		if (kodyIgnoreContent) {
+			kodyIgnoreInstructions = formatResponse.kodyIgnoreInstructions(kodyIgnoreContent)
 		}
 
 		// Prepare multi-root workspace information if enabled
@@ -1981,19 +1975,19 @@ export class Task {
 			mcpHub: this.mcpHub,
 			skills: availableSkills,
 			focusChainSettings: this.stateManager.getGlobalSettingsKey("focusChainSettings"),
-			globalClineRulesFileInstructions,
-			localClineRulesFileInstructions,
+			globalKodyRulesFileInstructions,
+			localKodyRulesFileInstructions,
 			localCursorRulesFileInstructions,
 			localCursorRulesDirInstructions,
 			localWindsurfRulesFileInstructions,
 			localAgentsRulesFileInstructions,
-			clineIgnoreInstructions,
+			kodyIgnoreInstructions,
 			preferredLanguageInstructions,
 			browserSettings: this.stateManager.getGlobalSettingsKey("browserSettings"),
 			yoloModeToggled: this.stateManager.getGlobalSettingsKey("yoloModeToggled"),
 			subagentsEnabled: this.stateManager.getGlobalSettingsKey("subagentsEnabled"),
-			clineWebToolsEnabled:
-				this.stateManager.getGlobalSettingsKey("clineWebToolsEnabled") && featureFlagsService.getWebtoolsEnabled(),
+			kodyWebToolsEnabled:
+				this.stateManager.getGlobalSettingsKey("kodyWebToolsEnabled") && featureFlagsService.getWebtoolsEnabled(),
 			isMultiRootEnabled: multiRootEnabled,
 			workspaceRoots,
 			isSubagentRun: false,
@@ -2017,7 +2011,7 @@ export class Task {
 
 		const contextManagementMetadata = await this.contextManager.getNewContextMessagesAndMetadata(
 			this.messageStateHandler.getApiConversationHistory(),
-			this.messageStateHandler.getClineMessages(),
+			this.messageStateHandler.getKodyMessages(),
 			this.api,
 			this.taskState.conversationHistoryDeletedRange,
 			previousApiReqIndex,
@@ -2027,7 +2021,7 @@ export class Task {
 
 		if (contextManagementMetadata.updatedConversationHistoryDeletedRange) {
 			this.taskState.conversationHistoryDeletedRange = contextManagementMetadata.conversationHistoryDeletedRange
-			await this.messageStateHandler.saveClineMessagesAndUpdateHistory()
+			await this.messageStateHandler.saveKodyMessagesAndUpdateHistory()
 			// saves task history item which we use to keep track of conversation history deleted range
 		}
 
@@ -2045,10 +2039,10 @@ export class Task {
 		} catch (error) {
 			const isContextWindowExceededError = checkContextWindowExceededError(error)
 			const { model, providerId } = this.getCurrentProviderInfo()
-			const clineError = ErrorService.get().toClineError(error, model.id, providerId)
+			const kodyError = ErrorService.get().toKodyError(error, model.id, providerId)
 
-			// Capture provider failure telemetry using clineError
-			ErrorService.get().logMessage(clineError.message)
+			// Capture provider failure telemetry using kodyError
+			ErrorService.get().logMessage(kodyError.message)
 
 			if (isContextWindowExceededError && !this.taskState.didAutomaticallyRetryFailedApiRequest) {
 				await this.handleContextWindowExceededError()
@@ -2065,51 +2059,51 @@ export class Task {
 					// If the conversation has more than 3 messages, we can truncate again. If not, then the conversation is bricked.
 					// ToDo: Allow the user to change their input if this is the case.
 					if (truncatedConversationHistory.length > 3) {
-						clineError.message = "Context window exceeded. Click retry to truncate the conversation and try again."
+						kodyError.message = "Context window exceeded. Click retry to truncate the conversation and try again."
 						this.taskState.didAutomaticallyRetryFailedApiRequest = false
 					}
 				}
 
-				const streamingFailedMessage = clineError.serialize()
+				const streamingFailedMessage = kodyError.serialize()
 
 				// Update the 'api_req_started' message to reflect final failure before asking user to manually retry
 				const lastApiReqStartedIndex = findLastIndex(
-					this.messageStateHandler.getClineMessages(),
+					this.messageStateHandler.getKodyMessages(),
 					(m) => m.say === "api_req_started",
 				)
 				if (lastApiReqStartedIndex !== -1) {
-					const clineMessages = this.messageStateHandler.getClineMessages()
-					const currentApiReqInfo: ClineApiReqInfo = JSON.parse(clineMessages[lastApiReqStartedIndex].text || "{}")
+					const kodyMessages = this.messageStateHandler.getKodyMessages()
+					const currentApiReqInfo: KodyApiReqInfo = JSON.parse(kodyMessages[lastApiReqStartedIndex].text || "{}")
 					delete currentApiReqInfo.retryStatus
 
-					await this.messageStateHandler.updateClineMessage(lastApiReqStartedIndex, {
+					await this.messageStateHandler.updateKodyMessage(lastApiReqStartedIndex, {
 						text: JSON.stringify({
 							...currentApiReqInfo, // Spread the modified info (with retryStatus removed)
 							// cancelReason: "retries_exhausted", // Indicate that automatic retries failed
 							streamingFailedMessage,
-						} satisfies ClineApiReqInfo),
+						} satisfies KodyApiReqInfo),
 					})
 					// this.ask will trigger postStateToWebview, so this change should be picked up.
 				}
 
-				const isAuthError = clineError.isErrorType(ClineErrorType.Auth)
+				const isAuthError = kodyError.isErrorType(KodyErrorType.Auth)
 
-				// Check if this is a Cline provider insufficient credits error - don't auto-retry these
-				const isClineProviderInsufficientCredits = (() => {
-					if (providerId !== "cline") {
+				// Check if this is a Kody provider insufficient credits error - don't auto-retry these
+				const isKodyProviderInsufficientCredits = (() => {
+					if (providerId !== "kody") {
 						return false
 					}
 					try {
-						const parsedError = ClineError.transform(error, model.id, providerId)
-						return parsedError.isErrorType(ClineErrorType.Balance)
+						const parsedError = KodyError.transform(error, model.id, providerId)
+						return parsedError.isErrorType(KodyErrorType.Balance)
 					} catch {
 						return false
 					}
 				})()
 
-				let response: ClineAskResponse
-				// Skip auto-retry for Cline provider insufficient credits or auth errors
-				if (!isClineProviderInsufficientCredits && !isAuthError && this.taskState.autoRetryAttempts < 3) {
+				let response: KodyAskResponse
+				// Skip auto-retry for Kody provider insufficient credits or auth errors
+				if (!isKodyProviderInsufficientCredits && !isAuthError && this.taskState.autoRetryAttempts < 3) {
 					// Auto-retry enabled with max 3 attempts: automatically approve the retry
 					this.taskState.autoRetryAttempts++
 
@@ -2128,7 +2122,7 @@ export class Task {
 						cancelReason: "streaming_failed",
 						streamingFailedMessage,
 					})
-					await this.messageStateHandler.saveClineMessagesAndUpdateHistory()
+					await this.messageStateHandler.saveKodyMessagesAndUpdateHistory()
 					await this.postStateToWebview()
 
 					response = "yesButtonClicked"
@@ -2145,14 +2139,14 @@ export class Task {
 					// Clear streamingFailedMessage now that error_retry contains it
 					// This prevents showing the error in both ErrorRow and error_retry
 					const autoRetryApiReqIndex = findLastIndex(
-						this.messageStateHandler.getClineMessages(),
+						this.messageStateHandler.getKodyMessages(),
 						(m) => m.say === "api_req_started",
 					)
 					if (autoRetryApiReqIndex !== -1) {
-						const clineMessages = this.messageStateHandler.getClineMessages()
-						const currentApiReqInfo: ClineApiReqInfo = JSON.parse(clineMessages[autoRetryApiReqIndex].text || "{}")
+						const kodyMessages = this.messageStateHandler.getKodyMessages()
+						const currentApiReqInfo: KodyApiReqInfo = JSON.parse(kodyMessages[autoRetryApiReqIndex].text || "{}")
 						delete currentApiReqInfo.streamingFailedMessage
-						await this.messageStateHandler.updateClineMessage(autoRetryApiReqIndex, {
+						await this.messageStateHandler.updateKodyMessage(autoRetryApiReqIndex, {
 							text: JSON.stringify(currentApiReqInfo),
 						})
 					}
@@ -2160,7 +2154,7 @@ export class Task {
 					await setTimeoutPromise(delay)
 				} else {
 					// Show error_retry with failed flag to indicate all retries exhausted (but not for insufficient credits)
-					if (!isClineProviderInsufficientCredits && !isAuthError) {
+					if (!isKodyProviderInsufficientCredits && !isAuthError) {
 						await this.say(
 							"error_retry",
 							JSON.stringify({
@@ -2186,14 +2180,14 @@ export class Task {
 
 				// Clear streamingFailedMessage when user manually retries
 				const manualRetryApiReqIndex = findLastIndex(
-					this.messageStateHandler.getClineMessages(),
+					this.messageStateHandler.getKodyMessages(),
 					(m) => m.say === "api_req_started",
 				)
 				if (manualRetryApiReqIndex !== -1) {
-					const clineMessages = this.messageStateHandler.getClineMessages()
-					const currentApiReqInfo: ClineApiReqInfo = JSON.parse(clineMessages[manualRetryApiReqIndex].text || "{}")
+					const kodyMessages = this.messageStateHandler.getKodyMessages()
+					const currentApiReqInfo: KodyApiReqInfo = JSON.parse(kodyMessages[manualRetryApiReqIndex].text || "{}")
 					delete currentApiReqInfo.streamingFailedMessage
-					await this.messageStateHandler.updateClineMessage(manualRetryApiReqIndex, {
+					await this.messageStateHandler.updateKodyMessage(manualRetryApiReqIndex, {
 						text: JSON.stringify(currentApiReqInfo),
 					})
 				}
@@ -2356,7 +2350,7 @@ export class Task {
 		}
 	}
 
-	async recursivelyMakeClineRequests(userContent: ClineContent[], includeFileDetails = false): Promise<boolean> {
+	async recursivelyMakeKodyRequests(userContent: KodyContent[], includeFileDetails = false): Promise<boolean> {
 		// Check abort flag at the very start to prevent any execution after cancellation
 		if (this.taskState.abort) {
 			throw new Error("Task instance aborted")
@@ -2378,7 +2372,7 @@ export class Task {
 			} catch {}
 		}
 
-		const modelInfo: ClineMessageModelInfo = {
+		const modelInfo: KodyMessageModelInfo = {
 			modelId: model.id,
 			providerId: providerId,
 			mode: mode,
@@ -2399,21 +2393,21 @@ export class Task {
 			if (autoApprovalSettings.enableNotifications) {
 				showSystemNotification({
 					subtitle: "Error",
-					message: "Cline is having trouble. Would you like to continue the task?",
+					message: "Kody is having trouble. Would you like to continue the task?",
 				})
 			}
 			const { response, text, images, files } = await this.ask(
 				"mistake_limit_reached",
 				this.api.getModel().id.includes("claude")
 					? `This may indicate a failure in the agent's thought process or inability to use a tool properly, which can be mitigated with some user guidance (e.g. "Try breaking down the task into smaller steps").`
-					: "Cline uses complex prompts and iterative task execution that may be challenging for less capable models. For best results, it's recommended to use Claude 4.5 Sonnet for its advanced agentic coding capabilities.",
+					: "Kody uses complex prompts and iterative task execution that may be challenging for less capable models. For best results, it's recommended to use Claude 4.5 Sonnet for its advanced agentic coding capabilities.",
 			)
 			if (response === "messageResponse") {
 				// Display the user's message in the chat UI
 				await this.say("user_feedback", text, images, files)
 
 				// This userContent is for the *next* API call.
-				const feedbackUserContent: ClineUserContent[] = []
+				const feedbackUserContent: KodyUserContent[] = []
 				feedbackUserContent.push({
 					type: "text",
 					text: formatResponse.tooManyMistakes(text),
@@ -2441,10 +2435,10 @@ export class Task {
 		}
 
 		// get previous api req's index to check token usage and determine if we need to truncate conversation history
-		const previousApiReqIndex = findLastIndex(this.messageStateHandler.getClineMessages(), (m) => m.say === "api_req_started")
+		const previousApiReqIndex = findLastIndex(this.messageStateHandler.getKodyMessages(), (m) => m.say === "api_req_started")
 
 		// Save checkpoint if this is the first API request
-		const isFirstRequest = this.messageStateHandler.getClineMessages().filter((m) => m.say === "api_req_started").length === 0
+		const isFirstRequest = this.messageStateHandler.getKodyMessages().filter((m) => m.say === "api_req_started").length === 0
 
 		// Initialize checkpointManager first if enabled and it's the first request
 		if (
@@ -2458,7 +2452,7 @@ export class Task {
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : "Unknown error"
 				Logger.error("Failed to initialize checkpoint manager:", errorMessage)
-				this.taskState.checkpointManagerErrorMessage = errorMessage // will be displayed right away since we saveClineMessages next which posts state to webview
+				this.taskState.checkpointManagerErrorMessage = errorMessage // will be displayed right away since we saveKodyMessages next which posts state to webview
 				HostProvider.window.showMessage({
 					type: ShowMessageType.ERROR,
 					message: `Checkpoint initialization timed out: ${errorMessage}`,
@@ -2476,7 +2470,7 @@ export class Task {
 		) {
 			await this.say("checkpoint_created") // Now this is conditional
 			const lastCheckpointMessageIndex = findLastIndex(
-				this.messageStateHandler.getClineMessages(),
+				this.messageStateHandler.getKodyMessages(),
 				(m) => m.say === "checkpoint_created",
 			)
 			if (lastCheckpointMessageIndex !== -1) {
@@ -2485,10 +2479,10 @@ export class Task {
 				commitPromise
 					?.then(async (commitHash) => {
 						if (commitHash) {
-							await this.messageStateHandler.updateClineMessage(lastCheckpointMessageIndex, {
+							await this.messageStateHandler.updateKodyMessage(lastCheckpointMessageIndex, {
 								lastCheckpointHash: commitHash,
 							})
-							// saveClineMessagesAndUpdateHistory will be called later after API response,
+							// saveKodyMessagesAndUpdateHistory will be called later after API response,
 							// so no need to call it here unless this is the only modification to this message.
 							// For now, assuming it's handled later.
 						}
@@ -2529,12 +2523,12 @@ export class Task {
 					const safeEnd = Math.min(end + 2, apiHistory.length - 1)
 					if (end + 2 <= safeEnd) {
 						this.taskState.conversationHistoryDeletedRange = [start, end + 2]
-						await this.messageStateHandler.saveClineMessagesAndUpdateHistory()
+						await this.messageStateHandler.saveKodyMessagesAndUpdateHistory()
 					}
 				}
 			} else {
 				shouldCompact = this.contextManager.shouldCompactContextWindow(
-					this.messageStateHandler.getClineMessages(),
+					this.messageStateHandler.getKodyMessages(),
 					this.api,
 					previousApiReqIndex,
 				)
@@ -2558,7 +2552,7 @@ export class Task {
 					shouldCompact = await this.contextManager.attemptFileReadOptimization(
 						this.messageStateHandler.getApiConversationHistory(),
 						this.taskState.conversationHistoryDeletedRange,
-						this.messageStateHandler.getClineMessages(),
+						this.messageStateHandler.getKodyMessages(),
 						previousApiReqIndex,
 						await ensureTaskDirectoryExists(this.taskId),
 					)
@@ -2568,30 +2562,30 @@ export class Task {
 
 		// NOW load context based on compaction decision
 		// This optimization avoids expensive context loading when using summarize_task
-		let parsedUserContent: ClineContent[]
+		let parsedUserContent: KodyContent[]
 		let environmentDetails: string
-		let clinerulesError: boolean
+		let kodyrulesError: boolean
 
 		if (shouldCompact) {
 			// When compacting, skip full context loading (use summarize_task instead)
 			parsedUserContent = userContent
 			environmentDetails = ""
-			clinerulesError = false
+			kodyrulesError = false
 			this.taskState.lastAutoCompactTriggerIndex = previousApiReqIndex
 		} else {
 			// When NOT compacting, load full context with mentions parsing and slash commands
-			;[parsedUserContent, environmentDetails, clinerulesError] = await this.loadContext(
+			;[parsedUserContent, environmentDetails, kodyrulesError] = await this.loadContext(
 				userContent,
 				includeFileDetails,
 				useCompactPrompt,
 			)
 		}
 
-		// error handling if the user uses the /newrule command & their .clinerules is a file, for file read operations didnt work properly
-		if (clinerulesError === true) {
+		// error handling if the user uses the /newrule command & their .kodyrules is a file, for file read operations didnt work properly
+		if (kodyrulesError === true) {
 			await this.say(
 				"error",
-				"Issue with processing the /newrule command. Double check that, if '.clinerules' already exists, it's a directory and not a file. Otherwise there was an issue referencing this file/directory.",
+				"Issue with processing the /newrule command. Double check that, if '.kodyrules' already exists, it's a directory and not a file. Otherwise there was an issue referencing this file/directory.",
 			)
 		}
 
@@ -2644,11 +2638,11 @@ export class Task {
 		}
 
 		// since we sent off a placeholder api_req_started message to update the webview while waiting to actually start the API request (to load potential details for example), we need to update the text of that message
-		const lastApiReqIndex = findLastIndex(this.messageStateHandler.getClineMessages(), (m) => m.say === "api_req_started")
-		await this.messageStateHandler.updateClineMessage(lastApiReqIndex, {
+		const lastApiReqIndex = findLastIndex(this.messageStateHandler.getKodyMessages(), (m) => m.say === "api_req_started")
+		await this.messageStateHandler.updateKodyMessage(lastApiReqIndex, {
 			text: JSON.stringify({
 				request: userContent.map((block) => formatContentBlockToMarkdown(block)).join("\n\n"),
-			} satisfies ClineApiReqInfo),
+			} satisfies KodyApiReqInfo),
 		})
 		await this.postStateToWebview()
 
@@ -2669,10 +2663,7 @@ export class Task {
 				updates before finalizing api_req_started, not to start processing.
 			*/
 
-			const updateApiReqMsgFromMetrics = async (
-				cancelReason?: ClineApiReqCancelReason,
-				streamingFailedMessage?: string,
-			) => {
+			const updateApiReqMsgFromMetrics = async (cancelReason?: KodyApiReqCancelReason, streamingFailedMessage?: string) => {
 				await updateApiReqMsg({
 					messageStateHandler: this.messageStateHandler,
 					lastApiReqIndex,
@@ -2715,13 +2706,13 @@ export class Task {
 					})
 			}
 
-			const finalizeApiReqMsg = async (cancelReason?: ClineApiReqCancelReason, streamingFailedMessage?: string) => {
+			const finalizeApiReqMsg = async (cancelReason?: KodyApiReqCancelReason, streamingFailedMessage?: string) => {
 				didFinalizeApiReqMsg = true
 				await usageChunkSideEffectsQueue
 				await updateApiReqMsgFromMetrics(cancelReason, streamingFailedMessage)
 			}
 
-			const abortStream = async (cancelReason: ClineApiReqCancelReason, streamingFailedMessage?: string) => {
+			const abortStream = async (cancelReason: KodyApiReqCancelReason, streamingFailedMessage?: string) => {
 				Session.get().finalizeRequest()
 
 				if (this.diffViewProvider.isEditing) {
@@ -2729,17 +2720,17 @@ export class Task {
 				}
 
 				// if last message is a partial we need to update and save it
-				const lastMessage = this.messageStateHandler.getClineMessages().at(-1)
+				const lastMessage = this.messageStateHandler.getKodyMessages().at(-1)
 				if (lastMessage?.partial) {
 					// lastMessage.ts = Date.now() DO NOT update ts since it is used as a key for virtuoso list
 					lastMessage.partial = false
 					// instead of streaming partialMessage events, we do a save and post like normal to persist to disk
 					Logger.log("updating partial message", lastMessage)
-					// await this.saveClineMessagesAndUpdateHistory()
+					// await this.saveKodyMessagesAndUpdateHistory()
 				}
 				// update api_req_started to have cancelled and cost, so that we can display the cost of the partial stream
 				await finalizeApiReqMsg(cancelReason, streamingFailedMessage)
-				await this.messageStateHandler.saveClineMessagesAndUpdateHistory()
+				await this.messageStateHandler.saveKodyMessagesAndUpdateHistory()
 
 				// Let assistant know their response was interrupted for when task is resumed
 				await this.messageStateHandler.addToApiConversationHistory({
@@ -2813,7 +2804,7 @@ export class Task {
 
 			const finalizePendingReasoningMessage = async (thinking: string): Promise<boolean> => {
 				const pendingReasoningIndex = findLastIndex(
-					this.messageStateHandler.getClineMessages(),
+					this.messageStateHandler.getKodyMessages(),
 					(message) => message.type === "say" && message.say === "reasoning" && message.partial === true,
 				)
 
@@ -2821,13 +2812,13 @@ export class Task {
 					return false
 				}
 
-				await this.messageStateHandler.updateClineMessage(pendingReasoningIndex, {
+				await this.messageStateHandler.updateKodyMessage(pendingReasoningIndex, {
 					text: thinking,
 					partial: false,
 				})
-				const completedReasoning = this.messageStateHandler.getClineMessages()[pendingReasoningIndex]
+				const completedReasoning = this.messageStateHandler.getKodyMessages()[pendingReasoningIndex]
 				if (completedReasoning) {
-					await sendPartialMessageEvent(convertClineMessageToProto(completedReasoning))
+					await sendPartialMessageEvent(convertKodyMessageToProto(completedReasoning))
 				}
 				return true
 			}
@@ -2962,7 +2953,7 @@ export class Task {
 					if (this.taskState.abort) {
 						this.api.abort?.()
 						if (!this.taskState.abandoned) {
-							// only need to gracefully abort if this instance isn't abandoned (sometimes openrouter stream hangs, in which case this would affect future instances of cline)
+							// only need to gracefully abort if this instance isn't abandoned (sometimes openrouter stream hangs, in which case this would affect future instances of kody)
 							await abortStream("user_cancelled")
 						}
 						shouldInterruptStream = true
@@ -3008,10 +2999,10 @@ export class Task {
 				}
 			} catch (error) {
 				await streamCoordinator?.stop()
-				// abandoned happens when extension is no longer waiting for the cline instance to finish aborting (error is thrown here when any function in the for loop throws due to this.abort)
+				// abandoned happens when extension is no longer waiting for the kody instance to finish aborting (error is thrown here when any function in the for loop throws due to this.abort)
 				if (!this.taskState.abandoned) {
-					const clineError = ErrorService.get().toClineError(error, this.api.getModel().id)
-					const errorMessage = clineError.serialize()
+					const kodyError = ErrorService.get().toKodyError(error, this.api.getModel().id)
+					const errorMessage = kodyError.serialize()
 					// Auto-retry for streaming failures (always enabled)
 					if (this.taskState.autoRetryAttempts < 3) {
 						this.taskState.autoRetryAttempts++
@@ -3067,7 +3058,7 @@ export class Task {
 
 			// Finalize any remaining tool calls at the end of the stream
 
-			// OpenRouter/Cline may not return token usage as part of the stream (since it may abort early), so we fetch after the stream is finished
+			// OpenRouter/Kody may not return token usage as part of the stream (since it may abort early), so we fetch after the stream is finished
 			// (updateApiReq below will update the api_req_started message with the usage details. we do this async so it updates the api_req_started message in the background)
 			if (!didReceiveUsageChunk) {
 				const apiStreamUsage = await this.api.getApiStreamUsage?.()
@@ -3087,7 +3078,7 @@ export class Task {
 
 			// Update the api_req_started message with final usage and cost details
 			await finalizeApiReqMsg()
-			await this.messageStateHandler.saveClineMessagesAndUpdateHistory()
+			await this.messageStateHandler.saveKodyMessagesAndUpdateHistory()
 			await this.postStateToWebview()
 
 			// need to call here in case the stream was aborted
@@ -3118,7 +3109,7 @@ export class Task {
 				const requestId = this.streamHandler.requestId
 
 				// Build content array with thinking blocks, text (if any), and tool use blocks
-				const assistantContent: Array<ClineAssistantContent> = [
+				const assistantContent: Array<KodyAssistantContent> = [
 					// This is critical for maintaining the model's reasoning flow and conversation integrity.
 					// "When providing thinking blocks, the entire sequence of consecutive thinking blocks must match the outputs generated by the model during the original request; you cannot rearrange or modify the sequence of these blocks." The signature_delta is used to verify that the thinking was generated by Claude, and the thinking blocks will be ignored if it's incorrect or missing.
 					// https://docs.claude.com/en/docs/build-with-claude/extended-thinking#preserving-thinking-blocks
@@ -3136,7 +3127,7 @@ export class Task {
 					assistantContent.push({
 						type: "text",
 						text: assistantTextOnly,
-						// reasoning_details only exists for cline/openrouter providers
+						// reasoning_details only exists for kody/openrouter providers
 						reasoning_details: thinkingBlock?.summary as any[],
 						signature: assistantTextSignature,
 						call_id: assistantMessageId,
@@ -3219,7 +3210,7 @@ export class Task {
 				// Reset auto-retry counter for each new API request
 				this.taskState.autoRetryAttempts = 0
 
-				const recDidEndLoop = await this.recursivelyMakeClineRequests(this.taskState.userMessageContent)
+				const recDidEndLoop = await this.recursivelyMakeKodyRequests(this.taskState.userMessageContent)
 				didEndLoop = recDidEndLoop
 			} else {
 				// if there's no assistant_responses, that means we got no text or tool_use content blocks from API which we should assume is an error
@@ -3262,7 +3253,7 @@ export class Task {
 					ts: Date.now(),
 				})
 
-				let response: ClineAskResponse
+				let response: KodyAskResponse
 
 				const noResponseErrorMessage = "No assistant message was received. Would you like to retry the request?"
 
@@ -3320,11 +3311,11 @@ export class Task {
 	}
 
 	async loadContext(
-		userContent: ClineContent[],
+		userContent: KodyContent[],
 		includeFileDetails = false,
 		useCompactPrompt = false,
-	): Promise<[ClineContent[], string, boolean]> {
-		let needsClinerulesFileCheck = false
+	): Promise<[KodyContent[], string, boolean]> {
+		let needsKodyrulesFileCheck = false
 
 		// Pre-fetch necessary data to avoid redundant calls within loops
 		const ulid = this.ulid
@@ -3356,7 +3347,7 @@ export class Task {
 				}
 			}
 
-			const { processedText, needsClinerulesFileCheck: needsCheck } = await parseSlashCommands(
+			const { processedText, needsKodyrulesFileCheck: needsCheck } = await parseSlashCommands(
 				parsedText,
 				localWorkflowToggles,
 				globalWorkflowToggles,
@@ -3368,13 +3359,13 @@ export class Task {
 			)
 
 			if (needsCheck) {
-				needsClinerulesFileCheck = true
+				needsKodyrulesFileCheck = true
 			}
 
 			return processedText
 		}
 
-		const processTextContent = async (block: ClineTextContentBlock): Promise<ClineTextContentBlock> => {
+		const processTextContent = async (block: KodyTextContentBlock): Promise<KodyTextContentBlock> => {
 			if (block.type !== "text" || !hasUserContentTag(block.text)) {
 				return block
 			}
@@ -3383,7 +3374,7 @@ export class Task {
 			return { ...block, text: processedText }
 		}
 
-		const processContentBlock = async (block: ClineContent): Promise<ClineContent> => {
+		const processContentBlock = async (block: KodyContent): Promise<KodyContent> => {
 			if (block.type === "text") {
 				return processTextContent(block)
 			}
@@ -3423,9 +3414,9 @@ export class Task {
 			this.getEnvironmentDetails(includeFileDetails),
 		])
 
-		// Check clinerulesData if needed
-		const clinerulesError = needsClinerulesFileCheck
-			? await ensureLocalClineDirExists(this.cwd, GlobalFileNames.clineRules)
+		// Check kodyrulesData if needed
+		const kodyrulesError = needsKodyrulesFileCheck
+			? await ensureLocalKodyDirExists(this.cwd, GlobalFileNames.kodyRules)
 			: false
 
 		// Add focus chain instructions if needed
@@ -3442,7 +3433,7 @@ export class Task {
 			}
 		}
 
-		return [processedUserContent, environmentDetails, clinerulesError]
+		return [processedUserContent, environmentDetails, kodyrulesError]
 	}
 
 	protected async processNativeToolCalls(assistantTextOnly: string, toolBlocks: ToolUse[]) {
@@ -3456,26 +3447,26 @@ export class Task {
 		const textContent = assistantTextOnly.trim()
 		const textBlocks: AssistantMessageContent[] = textContent ? [{ type: "text", content: textContent, partial: false }] : []
 
-		// IMPORTANT: Finalize any partial text ClineMessage before we skip over it.
+		// IMPORTANT: Finalize any partial text KodyMessage before we skip over it.
 		//
 		// When native tool calls are processed, we set currentStreamingContentIndex to skip
 		// the text block (line below sets it to textBlocks.length). This means presentAssistantMessage
 		// will never call say("text", content, false) for this text block.
 		//
-		// Without this fix, the partial text ClineMessage remains with partial=true. In the UI
+		// Without this fix, the partial text KodyMessage remains with partial=true. In the UI
 		// (ChatView), partial messages that are not the last message don't get displayed anywhere:
 		// - Not in completedMessages (because partial=true)
 		// - Not in currentMessage (because it's not the last message - tool message came after)
 		//
 		// The text appears to "disappear" when tool calls start, even though it's still in the array.
-		const clineMessages = this.messageStateHandler.getClineMessages()
-		const lastMessage = clineMessages.at(-1)
+		const kodyMessages = this.messageStateHandler.getKodyMessages()
+		const lastMessage = kodyMessages.at(-1)
 		const shouldFinalizePartialText = textBlocks.length > 0
 		if (shouldFinalizePartialText && lastMessage?.partial && lastMessage.type === "say" && lastMessage.say === "text") {
 			lastMessage.text = textContent
 			lastMessage.partial = false
-			await this.messageStateHandler.saveClineMessagesAndUpdateHistory()
-			const protoMessage = convertClineMessageToProto(lastMessage)
+			await this.messageStateHandler.saveKodyMessagesAndUpdateHistory()
+			const protoMessage = convertKodyMessageToProto(lastMessage)
 			await sendPartialMessageEvent(protoMessage)
 		}
 
@@ -3557,14 +3548,14 @@ export class Task {
 		// Workspace roots (multi-root)
 		details += this.formatWorkspaceRootsSection()
 
-		// It could be useful for cline to know if the user went from one or no file to another between messages, so we always include this context
+		// It could be useful for kody to know if the user went from one or no file to another between messages, so we always include this context
 		details += `\n\n# ${host.platform} Visible Files`
 		const rawVisiblePaths = (await HostProvider.window.getVisibleTabs({})).paths
 		const filteredVisiblePaths = await filterExistingFiles(rawVisiblePaths)
 		const visibleFilePaths = filteredVisiblePaths.map((absolutePath) => path.relative(this.cwd, absolutePath))
 
-		// Filter paths through clineIgnoreController
-		const allowedVisibleFiles = this.clineIgnoreController
+		// Filter paths through kodyIgnoreController
+		const allowedVisibleFiles = this.kodyIgnoreController
 			.filterPaths(visibleFilePaths)
 			.map((p) => p.toPosix())
 			.join("\n")
@@ -3580,8 +3571,8 @@ export class Task {
 		const filteredOpenTabPaths = await filterExistingFiles(rawOpenTabPaths)
 		const openTabPaths = filteredOpenTabPaths.map((absolutePath) => path.relative(this.cwd, absolutePath))
 
-		// Filter paths through clineIgnoreController
-		const allowedOpenTabs = this.clineIgnoreController
+		// Filter paths through kodyIgnoreController
+		const allowedOpenTabs = this.kodyIgnoreController
 			.filterPaths(openTabPaths)
 			.map((p) => p.toPosix())
 			.join("\n")
@@ -3686,7 +3677,7 @@ export class Task {
 				details += "(Desktop files not shown automatically. Use list_files to explore if needed.)"
 			} else {
 				const [files, didHitLimit] = await listFiles(this.cwd, true, 200)
-				const result = formatResponse.formatFilesList(this.cwd, files, didHitLimit, this.clineIgnoreController)
+				const result = formatResponse.formatFilesList(this.cwd, files, didHitLimit, this.kodyIgnoreController)
 				details += result
 			}
 
@@ -3709,7 +3700,7 @@ export class Task {
 		const { contextWindow } = getContextWindowInfo(this.api)
 
 		// Get the token count from the most recent API request to accurately reflect context management
-		const getTotalTokensFromApiReqMessage = (msg: ClineMessage) => {
+		const getTotalTokensFromApiReqMessage = (msg: KodyMessage) => {
 			if (!msg.text) {
 				return 0
 			}
@@ -3721,8 +3712,8 @@ export class Task {
 			}
 		}
 
-		const clineMessages = this.messageStateHandler.getClineMessages()
-		const modifiedMessages = combineApiRequests(combineCommandSequences(clineMessages.slice(1)))
+		const kodyMessages = this.messageStateHandler.getKodyMessages()
+		const modifiedMessages = combineApiRequests(combineCommandSequences(kodyMessages.slice(1)))
 		const lastApiReqMessage = findLast(modifiedMessages, (msg) => {
 			if (msg.say !== "api_req_started") {
 				return false

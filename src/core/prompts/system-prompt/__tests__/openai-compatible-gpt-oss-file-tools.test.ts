@@ -2,7 +2,7 @@ import { expect } from "chai"
 import { beforeEach, describe, it } from "mocha"
 import type { ApiProviderInfo } from "@/core/api"
 import { ModelFamily } from "@/shared/prompts"
-import { ClineDefaultTool } from "@/shared/tools"
+import { KodyDefaultTool } from "@/shared/tools"
 import { getSystemPrompt } from "../index"
 import { PromptRegistry } from "../registry/PromptRegistry"
 import type { SystemPromptContext } from "../types"
@@ -11,8 +11,8 @@ const makeContext = (modelId: string): SystemPromptContext => ({
 	cwd: "/test/project",
 	ide: "TestIde",
 	supportsBrowserUse: true,
-	clineWebToolsEnabled: true,
-	focusChainSettings: { enabled: true, remindClineInterval: 6 },
+	kodyWebToolsEnabled: true,
+	focusChainSettings: { enabled: true, remindKodyInterval: 6 },
 	browserSettings: { viewport: { width: 1280, height: 720 } },
 	isTesting: true,
 	enableNativeToolCalls: true,
@@ -45,17 +45,17 @@ describe("OpenAI-compatible gpt-oss native tools smoke test", () => {
 		const { tools } = await getSystemPrompt(makeContext("gpt-oss-120b"))
 		const toolNames = toolNamesFrom(tools)
 
-		expect(toolNames).to.include(ClineDefaultTool.BASH)
-		expect(toolNames).to.include(ClineDefaultTool.FILE_READ)
-		expect(toolNames).to.include(ClineDefaultTool.APPLY_PATCH)
-		expect(toolNames).to.not.include(ClineDefaultTool.FILE_NEW)
-		expect(toolNames).to.not.include(ClineDefaultTool.FILE_EDIT)
+		expect(toolNames).to.include(KodyDefaultTool.BASH)
+		expect(toolNames).to.include(KodyDefaultTool.FILE_READ)
+		expect(toolNames).to.include(KodyDefaultTool.APPLY_PATCH)
+		expect(toolNames).to.not.include(KodyDefaultTool.FILE_NEW)
+		expect(toolNames).to.not.include(KodyDefaultTool.FILE_EDIT)
 	})
 
 	it("control: gpt-5-codex still receives apply_patch", async () => {
 		const { tools } = await getSystemPrompt(makeContext("gpt-5-codex"))
 		const toolNames = toolNamesFrom(tools)
 
-		expect(toolNames).to.include(ClineDefaultTool.APPLY_PATCH)
+		expect(toolNames).to.include(KodyDefaultTool.APPLY_PATCH)
 	})
 })

@@ -1,6 +1,6 @@
 import { ModelFamily } from "@/shared/prompts"
-import { ClineDefaultTool } from "@/shared/tools"
-import type { ClineToolSpec } from "../spec"
+import { KodyDefaultTool } from "@/shared/tools"
+import type { KodyToolSpec } from "../spec"
 
 /**
  * ## new_task
@@ -19,9 +19,9 @@ Usage:
 </new_task>
  */
 
-const id = ClineDefaultTool.NEW_TASK
+const id = KodyDefaultTool.NEW_TASK
 
-const generic: ClineToolSpec = {
+const generic: KodyToolSpec = {
 	variant: ModelFamily.GENERIC,
 	id,
 	name: "new_task",

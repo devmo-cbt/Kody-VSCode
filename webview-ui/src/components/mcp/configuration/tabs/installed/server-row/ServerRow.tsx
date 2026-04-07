@@ -1,11 +1,6 @@
 import { DEFAULT_MCP_TIMEOUT_SECONDS, McpServer } from "@shared/mcp"
-import { StringRequest } from "@shared/proto/cline/common"
-import {
-	McpServers,
-	ToggleMcpServerRequest,
-	ToggleToolAutoApproveRequest,
-	UpdateMcpTimeoutRequest,
-} from "@shared/proto/cline/mcp"
+import { StringRequest } from "@shared/proto/kody/common"
+import { McpServers, ToggleMcpServerRequest, ToggleToolAutoApproveRequest, UpdateMcpTimeoutRequest } from "@shared/proto/kody/mcp"
 import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
 import {
 	VSCodeCheckbox,
@@ -93,7 +88,7 @@ const ServerRow = ({
 	const handleTimeoutChange = (e: any) => {
 		const select = e.target as HTMLSelectElement
 		const value = select.value
-		const num = parseInt(value)
+		const num = Number.parseInt(value)
 		setTimeoutValue(value)
 
 		McpServiceClient.updateMcpTimeout({

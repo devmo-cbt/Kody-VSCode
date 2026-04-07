@@ -15,7 +15,7 @@ import {
 	ModelInfo,
 } from "@shared/api"
 import { buildExternalBasicHeaders } from "@/services/EnvUtils"
-import { ClineStorageMessage } from "@/shared/messages/content"
+import { KodyStorageMessage } from "@/shared/messages/content"
 import { fetch } from "@/shared/net"
 import { ApiHandler, CommonApiHandlerOptions } from "../index"
 import { withRetry } from "../retry"
@@ -59,7 +59,7 @@ export class AnthropicHandler implements ApiHandler {
 	}
 
 	@withRetry()
-	async *createMessage(systemPrompt: string, messages: ClineStorageMessage[], tools?: AnthropicTool[]): ApiStream {
+	async *createMessage(systemPrompt: string, messages: KodyStorageMessage[], tools?: AnthropicTool[]): ApiStream {
 		const client = this.ensureClient()
 
 		const model = this.getModel()

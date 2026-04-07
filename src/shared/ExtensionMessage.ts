@@ -6,14 +6,14 @@ import type { Environment } from "../config"
 import { AutoApprovalSettings } from "./AutoApprovalSettings"
 import { ApiConfiguration } from "./api"
 import { BrowserSettings } from "./BrowserSettings"
-import { ClineFeatureSetting } from "./ClineFeatureSetting"
-import { BannerCardData } from "./cline/banner"
-import { ClineRulesToggles } from "./cline-rules"
 import { FocusChainSettings } from "./FocusChainSettings"
 import { HistoryItem } from "./HistoryItem"
+import { KodyFeatureSetting } from "./KodyFeatureSetting"
+import { BannerCardData } from "./kody/banner"
+import { KodyRulesToggles } from "./kody-rules"
 import { McpDisplayMode } from "./McpDisplayMode"
-import { ClineMessageModelInfo } from "./messages"
-import { OnboardingModelGroup } from "./proto/cline/state"
+import { KodyMessageModelInfo } from "./messages"
+import { OnboardingModelGroup } from "./proto/kody/state"
 import { Mode } from "./storage/types"
 import { TelemetrySetting } from "./TelemetrySetting"
 import { UserInfo } from "./UserInfo"
@@ -35,7 +35,7 @@ export type Platform = "aix" | "darwin" | "freebsd" | "linux" | "openbsd" | "sun
 
 export const DEFAULT_PLATFORM = "unknown"
 
-export const COMMAND_CANCEL_TOKEN = "__cline_command_cancel__"
+export const COMMAND_CANCEL_TOKEN = "__kody_command_cancel__"
 export interface ExtensionState {
 	isNewUser: boolean
 	welcomeViewCompleted: boolean
@@ -47,7 +47,7 @@ export interface ExtensionState {
 	preferredLanguage?: string
 	mode: Mode
 	checkpointManagerErrorMessage?: string
-	clineMessages: ClineMessage[]
+	kodyMessages: KodyMessage[]
 	currentTaskItem?: HistoryItem
 	currentFocusChainChecklist?: string | null
 	mcpMarketplaceEnabled?: boolean
@@ -71,22 +71,22 @@ export interface ExtensionState {
 	userInfo?: UserInfo
 	version: string
 	distinctId: string
-	globalClineRulesToggles: ClineRulesToggles
-	localClineRulesToggles: ClineRulesToggles
-	localWorkflowToggles: ClineRulesToggles
-	globalWorkflowToggles: ClineRulesToggles
-	localCursorRulesToggles: ClineRulesToggles
-	localWindsurfRulesToggles: ClineRulesToggles
-	remoteRulesToggles?: ClineRulesToggles
-	remoteWorkflowToggles?: ClineRulesToggles
-	localAgentsRulesToggles: ClineRulesToggles
+	globalKodyRulesToggles: KodyRulesToggles
+	localKodyRulesToggles: KodyRulesToggles
+	localWorkflowToggles: KodyRulesToggles
+	globalWorkflowToggles: KodyRulesToggles
+	localCursorRulesToggles: KodyRulesToggles
+	localWindsurfRulesToggles: KodyRulesToggles
+	remoteRulesToggles?: KodyRulesToggles
+	remoteWorkflowToggles?: KodyRulesToggles
+	localAgentsRulesToggles: KodyRulesToggles
 	mcpResponsesCollapsed?: boolean
 	strictPlanModeEnabled?: boolean
 	yoloModeToggled?: boolean
 	useAutoCondense?: boolean
 	subagentsEnabled?: boolean
-	clineWebToolsEnabled?: ClineFeatureSetting
-	worktreesEnabled?: ClineFeatureSetting
+	kodyWebToolsEnabled?: KodyFeatureSetting
+	worktreesEnabled?: KodyFeatureSetting
 	focusChainSettings: FocusChainSettings
 	customPrompt?: string
 	favoritedModelIds: string[]
@@ -94,7 +94,7 @@ export interface ExtensionState {
 	workspaceRoots: WorkspaceRoot[]
 	primaryRootIndex: number
 	isMultiRootWorkspace: boolean
-	multiRootSetting: ClineFeatureSetting
+	multiRootSetting: KodyFeatureSetting
 	lastDismissedInfoBannerVersion: number
 	lastDismissedModelBannerVersion: number
 	lastDismissedCliBannerVersion: number
@@ -113,11 +113,11 @@ export interface ExtensionState {
 	openAiCodexIsAuthenticated?: boolean
 }
 
-export interface ClineMessage {
+export interface KodyMessage {
 	ts: number
 	type: "ask" | "say"
-	ask?: ClineAsk
-	say?: ClineSay
+	ask?: KodyAsk
+	say?: KodySay
 	text?: string
 	reasoning?: string
 	images?: string[]
@@ -129,10 +129,10 @@ export interface ClineMessage {
 	isOperationOutsideWorkspace?: boolean
 	conversationHistoryIndex?: number
 	conversationHistoryDeletedRange?: [number, number] // for when conversation history is truncated for API requests
-	modelInfo?: ClineMessageModelInfo
+	modelInfo?: KodyMessageModelInfo
 }
 
-export type ClineAsk =
+export type KodyAsk =
 	| "followup"
 	| "plan_mode_respond"
 	| "act_mode_respond"
@@ -152,7 +152,7 @@ export type ClineAsk =
 	| "report_bug"
 	| "use_subagents"
 
-export type ClineSay =
+export type KodySay =
 	| "task"
 	| "error"
 	| "error_retry"
@@ -178,7 +178,7 @@ export type ClineSay =
 	| "use_mcp_server"
 	| "diff_error"
 	| "deleted_api_reqs"
-	| "clineignore_error"
+	| "kodyignore_error"
 	| "command_permission_denied"
 	| "checkpoint_created"
 	| "load_mcp_documentation"
@@ -192,7 +192,7 @@ export type ClineSay =
 	| "subagent_usage"
 	| "conditional_rules_applied"
 
-export interface ClineSayTool {
+export interface KodySayTool {
 	tool:
 		| "editedExistingFile"
 		| "newFileCreated"
@@ -216,7 +216,7 @@ export interface ClineSayTool {
 	startLineNumbers?: number[]
 }
 
-export interface ClineSayHook {
+export interface KodySayHook {
 	hookName: string // Name of the hook (e.g., "PreToolUse", "PostToolUse")
 	toolName?: string // Tool name if applicable (for PreToolUse/PostToolUse)
 	status: "running" | "completed" | "failed" | "cancelled" // Execution status
@@ -255,13 +255,13 @@ export type HookOutputStreamMeta = {
 export const browserActions = ["launch", "click", "type", "scroll_down", "scroll_up", "close"] as const
 export type BrowserAction = (typeof browserActions)[number]
 
-export interface ClineSayBrowserAction {
+export interface KodySayBrowserAction {
 	action: BrowserAction
 	coordinate?: string
 	text?: string
 }
 
-export interface ClineSayGenerateExplanation {
+export interface KodySayGenerateExplanation {
 	title: string
 	fromRef: string
 	toRef: string
@@ -287,7 +287,7 @@ export interface SubagentStatusItem {
 	error?: string
 }
 
-export interface ClineSaySubagentStatus {
+export interface KodySaySubagentStatus {
 	status: "running" | "completed" | "failed"
 	total: number
 	completed: number
@@ -309,7 +309,7 @@ export type BrowserActionResult = {
 	currentMousePosition?: string
 }
 
-export interface ClineAskUseMcpServer {
+export interface KodyAskUseMcpServer {
 	serverName: string
 	type: "use_mcp_tool" | "access_mcp_resource"
 	toolName?: string
@@ -317,34 +317,34 @@ export interface ClineAskUseMcpServer {
 	uri?: string
 }
 
-export interface ClineAskUseSubagents {
+export interface KodyAskUseSubagents {
 	prompts: string[]
 }
 
-export interface ClinePlanModeResponse {
+export interface KodyPlanModeResponse {
 	response: string
 	options?: string[]
 	selected?: string
 }
 
-export interface ClineAskQuestion {
+export interface KodyAskQuestion {
 	question: string
 	options?: string[]
 	selected?: string
 }
 
-export interface ClineAskNewTask {
+export interface KodyAskNewTask {
 	context: string
 }
 
-export interface ClineApiReqInfo {
+export interface KodyApiReqInfo {
 	request?: string
 	tokensIn?: number
 	tokensOut?: number
 	cacheWrites?: number
 	cacheReads?: number
 	cost?: number
-	cancelReason?: ClineApiReqCancelReason
+	cancelReason?: KodyApiReqCancelReason
 	streamingFailedMessage?: string
 	retryStatus?: {
 		attempt: number
@@ -354,7 +354,7 @@ export interface ClineApiReqInfo {
 	}
 }
 
-export interface ClineSubagentUsageInfo {
+export interface KodySubagentUsageInfo {
 	source: "subagents"
 	tokensIn: number
 	tokensOut: number
@@ -363,6 +363,6 @@ export interface ClineSubagentUsageInfo {
 	cost: number
 }
 
-export type ClineApiReqCancelReason = "streaming_failed" | "user_cancelled" | "retries_exhausted"
+export type KodyApiReqCancelReason = "streaming_failed" | "user_cancelled" | "retries_exhausted"
 
 export const COMPLETION_RESULT_CHANGES_FLAG = "HAS_CHANGES"

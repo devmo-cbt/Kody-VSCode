@@ -1,1 +1,1 @@
-export { ClineTempManager } from "./ClineTempManager"
+export { KodyTempManager } from "./KodyTempManager"

@@ -9,11 +9,11 @@ import { createHook } from "../core/controller/file/createHook"
 import { deleteHook } from "../core/controller/file/deleteHook"
 import { refreshHooks } from "../core/controller/file/refreshHooks"
 import { toggleHook } from "../core/controller/file/toggleHook"
+import { hookFileName } from "../core/hooks/__tests__/test-utils"
 import { HookDiscoveryCache } from "../core/hooks/HookDiscoveryCache"
 import { StateManager } from "../core/storage/StateManager"
 import { HostProvider } from "../hosts/host-provider"
-import { CreateHookRequest, DeleteHookRequest, ToggleHookRequest } from "../shared/proto/cline/file"
-import { hookFileName } from "../core/hooks/__tests__/test-utils"
+import { CreateHookRequest, DeleteHookRequest, ToggleHookRequest } from "../shared/proto/kody/file"
 
 /**
  * Integration tests for hook management
@@ -35,8 +35,8 @@ describe("Hook Management Integration", () => {
 
 		// Create temporary directories
 		tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "hook-integration-test-"))
-		globalHooksDir = path.join(tempDir, "global", "Documents", "Cline", "Hooks")
-		workspaceHooksDir = path.join(tempDir, "workspace", ".clinerules", "hooks")
+		globalHooksDir = path.join(tempDir, "global", "Documents", "Kody", "Hooks")
+		workspaceHooksDir = path.join(tempDir, "workspace", ".kodyrules", "hooks")
 
 		await fs.mkdir(globalHooksDir, { recursive: true })
 		await fs.mkdir(workspaceHooksDir, { recursive: true })

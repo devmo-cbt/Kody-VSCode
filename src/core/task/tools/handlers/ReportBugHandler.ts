@@ -7,14 +7,14 @@ import * as os from "os"
 import { HostProvider } from "@/hosts/host-provider"
 import { ExtensionRegistryInfo } from "@/registry"
 import { Logger } from "@/shared/services/Logger"
-import { ClineDefaultTool } from "@/shared/tools"
+import { KodyDefaultTool } from "@/shared/tools"
 import type { ToolResponse } from "../../index"
 import type { IPartialBlockHandler, IToolHandler } from "../ToolExecutorCoordinator"
 import type { TaskConfig } from "../types/TaskConfig"
 import type { StronglyTypedUIHelpers } from "../types/UIHelpers"
 
 export class ReportBugHandler implements IToolHandler, IPartialBlockHandler {
-	readonly name = ClineDefaultTool.REPORT_BUG
+	readonly name = KodyDefaultTool.REPORT_BUG
 
 	constructor() {}
 
@@ -76,7 +76,7 @@ export class ReportBugHandler implements IToolHandler, IPartialBlockHandler {
 		// Derive system information values algorithmically
 		const operatingSystem = os.platform() + " " + os.release()
 		const currentMode = config.mode
-		const clineVersion = ExtensionRegistryInfo.version
+		const kodyVersion = ExtensionRegistryInfo.version
 		const host = await HostProvider.env.getHostVersion({})
 		const systemInfo = `${host.platform}: ${host.version}, Node.js: ${process.version}, Architecture: ${os.arch()}`
 		const apiConfig = config.services.stateManager.getApiConfiguration()
@@ -94,7 +94,7 @@ export class ReportBugHandler implements IToolHandler, IPartialBlockHandler {
 			provider_and_model: providerAndModel,
 			operating_system: operatingSystem,
 			system_info: systemInfo,
-			cline_version: clineVersion,
+			kody_version: kodyVersion,
 		})
 
 		const { text, images, files: reportBugFiles } = await config.callbacks.ask(this.name, bugReportData, false)
@@ -119,7 +119,7 @@ export class ReportBugHandler implements IToolHandler, IPartialBlockHandler {
 			const params = new Map<string, string>()
 			params.set("title", title)
 			params.set("operating-system", operatingSystem)
-			params.set("cline-version", clineVersion)
+			params.set("kody-version", kodyVersion)
 			params.set("system-info", systemInfo)
 			params.set("additional-context", additional_context)
 			params.set("what-happened", what_happened)
@@ -129,7 +129,7 @@ export class ReportBugHandler implements IToolHandler, IPartialBlockHandler {
 
 			// Use our utility function to create and open the GitHub issue URL
 			// This bypasses VS Code's URI handling issues with special characters
-			await createAndOpenGitHubIssue("cline", "cline", "bug_report.yml", params)
+			await createAndOpenGitHubIssue("kody", "kody", "bug_report.yml", params)
 		} catch (error) {
 			Logger.error(`An error occurred while attempting to report the bug: ${error}`)
 		}

@@ -1,4 +1,4 @@
-import { UpdateSettingsRequest } from "@shared/proto/cline/state"
+import { UpdateSettingsRequest } from "@shared/proto/kody/state"
 import { memo, type ReactNode, useCallback } from "react"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -94,11 +94,11 @@ const editorFeatures: FeatureToggle[] = [
 		settingKey: "enableCheckpointsSetting",
 	},
 	{
-		id: "cline-web-tools",
+		id: "kody-web-tools",
 		label: "Kody Web Tools",
 		description: "Access web browsing and search capabilities",
-		stateKey: "clineWebToolsEnabled",
-		settingKey: "clineWebToolsEnabled",
+		stateKey: "kodyWebToolsEnabled",
+		settingKey: "kodyWebToolsEnabled",
 	},
 	{
 		id: "worktrees",
@@ -203,7 +203,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 		yoloModeToggled,
 		useAutoCondense,
 		subagentsEnabled,
-		clineWebToolsEnabled,
+		kodyWebToolsEnabled,
 		worktreesEnabled,
 		focusChainSettings,
 		remoteConfigSettings,
@@ -215,7 +215,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 
 	const handleFocusChainIntervalChange = useCallback(
 		(value: number) => {
-			updateSetting("focusChainSettings", { ...focusChainSettings, remindClineInterval: value })
+			updateSetting("focusChainSettings", { ...focusChainSettings, remindKodyInterval: value })
 		},
 		[focusChainSettings],
 	)
@@ -231,7 +231,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 		focusChainEnabled: focusChainSettings?.enabled,
 		useAutoCondense,
 		subagentsEnabled,
-		clineWebToolsEnabled: clineWebToolsEnabled?.user,
+		kodyWebToolsEnabled: kodyWebToolsEnabled?.user,
 		worktreesEnabled: worktreesEnabled?.user,
 		enableParallelToolCalling,
 		backgroundEditEnabled,
@@ -241,7 +241,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 
 	// Visibility lookup for features with feature flags
 	const featureVisibility: Record<string, boolean | undefined> = {
-		clineWebToolsEnabled: clineWebToolsEnabled?.featureFlag,
+		kodyWebToolsEnabled: kodyWebToolsEnabled?.featureFlag,
 		worktreesEnabled: worktreesEnabled?.featureFlag,
 	}
 
@@ -294,7 +294,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 											min={1}
 											onChange={handleFocusChainIntervalChange}
 											step={1}
-											value={focusChainSettings?.remindClineInterval || 6}
+											value={focusChainSettings?.remindKodyInterval || 6}
 											valueWidth="w-6"
 										/>
 									)}
