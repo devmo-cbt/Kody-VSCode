@@ -6,7 +6,7 @@ import { exec } from "node:child_process"
 import os from "node:os"
 import path from "node:path"
 
-import { RuleScope } from "@shared/proto/cline/file"
+import { RuleScope } from "@shared/proto/kody/file"
 import type { GlobalStateAndSettings, GlobalStateAndSettingsKey, LocalState, LocalStateKey } from "@shared/storage/state-keys"
 import React, { useCallback, useEffect, useState } from "react"
 
@@ -57,8 +57,8 @@ export const ConfigViewWrapper: React.FC<ConfigViewWrapperProps> = ({
 	const [workspaceStateLocal, setWorkspaceStateLocal] = useState<Record<string, unknown>>(initialWorkspaceState)
 
 	// Rules state
-	const [globalClineRulesToggles, setGlobalClineRulesToggles] = useState<Record<string, boolean>>({})
-	const [localClineRulesToggles, setLocalClineRulesToggles] = useState<Record<string, boolean>>({})
+	const [globalKodyRulesToggles, setGlobalKodyRulesToggles] = useState<Record<string, boolean>>({})
+	const [localKodyRulesToggles, setLocalKodyRulesToggles] = useState<Record<string, boolean>>({})
 	const [localCursorRulesToggles, setLocalCursorRulesToggles] = useState<Record<string, boolean>>({})
 	const [localWindsurfRulesToggles, setLocalWindsurfRulesToggles] = useState<Record<string, boolean>>({})
 	const [localAgentsRulesToggles, setLocalAgentsRulesToggles] = useState<Record<string, boolean>>({})
@@ -83,8 +83,8 @@ export const ConfigViewWrapper: React.FC<ConfigViewWrapperProps> = ({
 			const { refreshSkills } = await import("@/core/controller/file/refreshSkills")
 
 			const rulesData = await refreshRules(controller, {})
-			setGlobalClineRulesToggles(rulesData.globalClineRulesToggles?.toggles || {})
-			setLocalClineRulesToggles(rulesData.localClineRulesToggles?.toggles || {})
+			setGlobalKodyRulesToggles(rulesData.globalKodyRulesToggles?.toggles || {})
+			setLocalKodyRulesToggles(rulesData.localKodyRulesToggles?.toggles || {})
 			setLocalCursorRulesToggles(rulesData.localCursorRulesToggles?.toggles || {})
 			setLocalWindsurfRulesToggles(rulesData.localWindsurfRulesToggles?.toggles || {})
 			setLocalAgentsRulesToggles(rulesData.localAgentsRulesToggles?.toggles || {})
@@ -109,12 +109,12 @@ export const ConfigViewWrapper: React.FC<ConfigViewWrapperProps> = ({
 	// Toggle handlers
 	const handleToggleRule = useCallback(
 		async (isGlobal: boolean, rulePath: string, enabled: boolean, ruleType: string) => {
-			const { toggleClineRule } = await import("@/core/controller/file/toggleClineRule")
+			const { toggleKodyRule } = await import("@/core/controller/file/toggleKodyRule")
 
 			// Determine scope based on isGlobal and rule type
 			const scope = isGlobal ? RuleScope.GLOBAL : RuleScope.LOCAL
 
-			// For non-cline rules, we need different toggle functions
+			// For non-kody rules, we need different toggle functions
 			if (ruleType === "cursor") {
 				// Update local state optimistically
 				setLocalCursorRulesToggles((prev) => ({ ...prev, [rulePath]: enabled }))
@@ -133,13 +133,13 @@ export const ConfigViewWrapper: React.FC<ConfigViewWrapperProps> = ({
 				toggles[rulePath] = enabled
 				controller.stateManager.setWorkspaceState("localAgentsRulesToggles", toggles)
 			} else {
-				// Cline rules
-				const result = await toggleClineRule(controller, { metadata: undefined, rulePath, enabled, scope })
-				if (result.globalClineRulesToggles?.toggles) {
-					setGlobalClineRulesToggles(result.globalClineRulesToggles.toggles)
+				// Kody rules
+				const result = await toggleKodyRule(controller, { metadata: undefined, rulePath, enabled, scope })
+				if (result.globalKodyRulesToggles?.toggles) {
+					setGlobalKodyRulesToggles(result.globalKodyRulesToggles.toggles)
 				}
-				if (result.localClineRulesToggles?.toggles) {
-					setLocalClineRulesToggles(result.localClineRulesToggles.toggles)
+				if (result.localKodyRulesToggles?.toggles) {
+					setLocalKodyRulesToggles(result.localKodyRulesToggles.toggles)
 				}
 			}
 		},
@@ -210,7 +210,7 @@ export const ConfigViewWrapper: React.FC<ConfigViewWrapperProps> = ({
 			let folderPath: string
 
 			if (isGlobal) {
-				// Global folders are in dataDir (e.g., ~/.cline/)
+				// Global folders are in dataDir (e.g., ~/.kody/)
 				const subFolder = folderType === "rules" ? "rules" : folderType
 				folderPath = path.join(dataDir, subFolder)
 			} else {
@@ -220,9 +220,9 @@ export const ConfigViewWrapper: React.FC<ConfigViewWrapperProps> = ({
 				if (!primaryWorkspace) {
 					return
 				}
-				// Local rules/workflows/hooks/skills are in .clinerules or .cline
+				// Local rules/workflows/hooks/skills are in .kodyrules or .kody
 				const subFolder = folderType === "rules" ? "rules" : folderType
-				folderPath = path.join(primaryWorkspace, ".clinerules", subFolder)
+				folderPath = path.join(primaryWorkspace, ".kodyrules", subFolder)
 			}
 
 			// Open folder using platform-specific command
@@ -273,15 +273,15 @@ export const ConfigViewWrapper: React.FC<ConfigViewWrapperProps> = ({
 		<StdinProvider isRawModeSupported={isRawModeSupported}>
 			<ConfigView
 				dataDir={dataDir}
-				globalClineRulesToggles={globalClineRulesToggles}
 				globalHooks={globalHooks}
+				globalKodyRulesToggles={globalKodyRulesToggles}
 				globalSkills={globalSkills}
 				globalState={globalStateLocal}
 				globalWorkflowToggles={globalWorkflowToggles}
 				hooksEnabled={hooksEnabled}
 				localAgentsRulesToggles={localAgentsRulesToggles}
-				localClineRulesToggles={localClineRulesToggles}
 				localCursorRulesToggles={localCursorRulesToggles}
+				localKodyRulesToggles={localKodyRulesToggles}
 				localSkills={localSkills}
 				localWindsurfRulesToggles={localWindsurfRulesToggles}
 				localWorkflowToggles={localWorkflowToggles}

@@ -3,7 +3,7 @@
  * Displays available checkpoints and allows user to select one to restore
  */
 
-import type { ClineMessage } from "@shared/ExtensionMessage"
+import type { KodyMessage } from "@shared/ExtensionMessage"
 import { Box, Text, useInput } from "ink"
 import React, { useState } from "react"
 import { useStdinContext } from "../context/StdinContext"
@@ -19,7 +19,7 @@ interface CheckpointOption {
 }
 
 interface CheckpointMenuProps {
-	messages: ClineMessage[]
+	messages: KodyMessage[]
 	onSelect: (messageTs: number, restoreType: RestoreType) => void
 	onCancel: () => void
 }
@@ -27,7 +27,7 @@ interface CheckpointMenuProps {
 /**
  * Extract checkpoint options from messages
  */
-function getCheckpointOptions(messages: ClineMessage[]): CheckpointOption[] {
+function getCheckpointOptions(messages: KodyMessage[]): CheckpointOption[] {
 	const options: CheckpointOption[] = []
 
 	for (const msg of messages) {
@@ -48,7 +48,7 @@ function getCheckpointOptions(messages: ClineMessage[]): CheckpointOption[] {
 /**
  * Get a human-readable label for a checkpoint
  */
-function getCheckpointLabel(msg: ClineMessage): string {
+function getCheckpointLabel(msg: KodyMessage): string {
 	if (msg.say === "completion_result") {
 		return "Task completion"
 	}

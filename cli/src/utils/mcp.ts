@@ -67,18 +67,18 @@ function parseMcpSettings(content: string, settingsPath: string): Record<string,
 function createMcpServerConfig(targetOrCommand: string[], transportType: McpAddTransportType): Record<string, unknown> {
 	if (transportType === "stdio") {
 		if (targetOrCommand.length < 1) {
-			throw new Error("Missing stdio command. Example: cline mcp add kanban -- kanban mcp")
+			throw new Error("Missing stdio command. Example: kody mcp add kanban -- kanban mcp")
 		}
 
 		// Guard against common mistake:
-		// `cline mcp add <name> <url>` without `--type http`
+		// `kody mcp add <name> <url>` without `--type http`
 		if (targetOrCommand.length === 1) {
 			const [value] = targetOrCommand
 			try {
 				const parsedUrl = new URL(value)
 				if (parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:") {
 					throw new Error(
-						`Looks like you provided a URL for '${value}'. Use --type http, for example: cline mcp add <name> ${value} --type http`,
+						`Looks like you provided a URL for '${value}'. Use --type http, for example: kody mcp add <name> ${value} --type http`,
 					)
 				}
 			} catch (error) {
@@ -104,7 +104,7 @@ function createMcpServerConfig(targetOrCommand: string[], transportType: McpAddT
 
 	if (targetOrCommand.length !== 1) {
 		throw new Error(
-			"HTTP/SSE MCP servers require exactly one URL. Example: cline mcp add linear https://mcp.linear.app/mcp --type http",
+			"HTTP/SSE MCP servers require exactly one URL. Example: kody mcp add linear https://mcp.linear.app/mcp --type http",
 		)
 	}
 
@@ -130,7 +130,7 @@ export async function addMcpServerShortcut(
 	const transportType = normalizeMcpTransportType(options.type)
 
 	const { DATA_DIR } = initializeCliContext({
-		clineDir: options.config,
+		kodyDir: options.config,
 		workspaceDir: options.cwd || process.cwd(),
 	})
 

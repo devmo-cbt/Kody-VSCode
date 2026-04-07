@@ -1,5 +1,5 @@
 /**
- * Cline CLI - TypeScript implementation with React Ink
+ * Kody CLI - TypeScript implementation with React Ink
  */
 
 import { spawn } from "node:child_process"
@@ -8,7 +8,7 @@ import type { ApiProvider } from "@shared/api"
 import { Command } from "commander"
 import { render } from "ink"
 import React from "react"
-import { ClineEndpoint } from "@/config"
+import { KodyEndpoint } from "@/config"
 import type { Controller } from "@/core/controller"
 import { getHooksEnabledSafe } from "@/core/hooks/hooks-utils"
 import { setRuntimeHooksDir } from "@/core/storage/disk"
@@ -256,12 +256,12 @@ function getNpxCommand(): string {
 }
 
 function runKanbanAlias(): void {
-	const child = spawn(getNpxCommand(), ["-y", "kanban@latest", "--agent", "cline"], {
+	const child = spawn(getNpxCommand(), ["-y", "kanban@latest", "--agent", "kody"], {
 		stdio: "inherit",
 	})
 
 	child.on("error", () => {
-		printWarning("Failed to run 'npx kanban@latest --agent cline'. Make sure npx is installed and available in PATH.")
+		printWarning("Failed to run 'npx kanban@latest --agent kody'. Make sure npx is installed and available in PATH.")
 		exit(1)
 	})
 
@@ -301,7 +301,7 @@ async function runTaskInPlainTextMode(
 	// In plain text mode we can't show the interactive auth flow
 	const hasAuth = await isAuthConfigured()
 	if (!hasAuth) {
-		printWarning("Not authenticated. Please run 'cline auth' first to configure your API credentials.")
+		printWarning("Not authenticated. Please run 'kody auth' first to configure your API credentials.")
 		await disposeCliContext(ctx)
 		exit(1)
 	}
@@ -455,7 +455,7 @@ function setupSignalHandlers() {
 	process.on("SIGTERM", () => shutdown("SIGTERM"))
 
 	// Suppress known abort errors from unhandled rejections
-	// These occur when task is cancelled and async operations throw "Cline instance aborted"
+	// These occur when task is cancelled and async operations throw "Kody instance aborted"
 	process.on("unhandledRejection", (reason: unknown) => {
 		const message = reason instanceof Error ? reason.message : String(reason)
 		// Silently ignore abort-related errors - they're expected during task cancellation
@@ -499,18 +499,18 @@ async function initializeCli(options: InitOptions): Promise<CliContext> {
 	const workspacePath = options.cwd || process.cwd()
 	setRuntimeHooksDir(options.hooksDir)
 	const { extensionContext, storageContext, DATA_DIR, EXTENSION_DIR } = initializeCliContext({
-		clineDir: options.config,
+		kodyDir: options.config,
 		workspaceDir: workspacePath,
 	})
 
-	// Set up output channel and Logger early so ClineEndpoint.initialize logs are captured
-	const outputChannel = window.createOutputChannel("Cline CLI")
+	// Set up output channel and Logger early so KodyEndpoint.initialize logs are captured
+	const outputChannel = window.createOutputChannel("Kody CLI")
 	const logToChannel = (message: string) => outputChannel.appendLine(message)
 
 	// Configure the shared Logging class early to capture all initialization logs
 	Logger.subscribe(logToChannel)
 
-	await ClineEndpoint.initialize(EXTENSION_DIR)
+	await KodyEndpoint.initialize(EXTENSION_DIR)
 
 	// Auto-update check (after endpoints initialized, so we can detect bundled configs)
 	autoUpdateOnStartup(CLI_VERSION)
@@ -523,7 +523,7 @@ async function initializeCli(options: InitOptions): Promise<CliContext> {
 	}
 
 	outputChannel.appendLine(
-		`Cline CLI initialized. Data dir: ${DATA_DIR}, Extension dir: ${EXTENSION_DIR}, Log dir: ${CLINE_CLI_DIR.log}`,
+		`Kody CLI initialized. Data dir: ${DATA_DIR}, Extension dir: ${EXTENSION_DIR}, Log dir: ${CLINE_CLI_DIR.log}`,
 	)
 
 	HostProvider.initialize(
@@ -546,7 +546,7 @@ async function initializeCli(options: InitOptions): Promise<CliContext> {
 	const controller = webview.controller
 
 	await telemetryService.captureExtensionActivated()
-	await telemetryService.captureHostEvent("cline_cli", "initialized")
+	await telemetryService.captureHostEvent("kody_cli", "initialized")
 
 	const ctx = { extensionContext, dataDir: DATA_DIR, extensionDir: EXTENSION_DIR, workspacePath, controller }
 	activeContext = ctx
@@ -617,8 +617,8 @@ async function runTask(prompt: string, options: TaskOptions & { images?: string[
 	}
 
 	// Interactive mode: Render the welcome view with optional initial prompt/images
-	// If prompt provided (cline task "prompt"), ChatView will auto-submit
-	// If no prompt (cline interactive), user will type it in
+	// If prompt provided (kody task "prompt"), ChatView will auto-submit
+	// If no prompt (kody interactive), user will type it in
 	let taskError = false
 
 	await runInkApp(
@@ -815,7 +815,7 @@ async function runAuth(options: {
 // Setup CLI commands
 const program = new Command()
 
-program.name("cline").description("Cline CLI - AI coding assistant in your terminal").version(CLI_VERSION)
+program.name("kody").description("Kody CLI - AI coding assistant in your terminal").version(CLI_VERSION)
 
 // Enable positional options to avoid conflicts between root and subcommand options with the same name
 program.enablePositionalOptions()
@@ -833,7 +833,7 @@ program
 	.option("-m, --model <model>", "Model to use for the task")
 	.option("-v, --verbose", "Show verbose output")
 	.option("-c, --cwd <path>", "Working directory for the task")
-	.option("--config <path>", "Path to Cline configuration directory")
+	.option("--config <path>", "Path to Kody configuration directory")
 	.option("--thinking [tokens]", "Enable extended thinking (default: 1024 tokens)")
 	.option("--reasoning-effort <effort>", "Reasoning effort: none|low|medium|high|xhigh")
 	.option("--max-consecutive-mistakes <count>", "Maximum consecutive mistakes before halting in yolo mode")
@@ -855,13 +855,13 @@ program
 	.description("List task history")
 	.option("-n, --limit <number>", "Number of tasks to show", "10")
 	.option("-p, --page <number>", "Page number (1-based)", "1")
-	.option("--config <path>", "Path to Cline configuration directory")
+	.option("--config <path>", "Path to Kody configuration directory")
 	.action(listHistory)
 
 program
 	.command("config")
 	.description("Show current configuration")
-	.option("--config <path>", "Path to Cline configuration directory")
+	.option("--config <path>", "Path to Kody configuration directory")
 	.action(showConfig)
 
 program
@@ -873,25 +873,25 @@ program
 	.option("-b, --baseurl <url>", "Base URL (optional, only for openai provider)")
 	.option("-v, --verbose", "Show verbose output")
 	.option("-c, --cwd <path>", "Working directory for the task")
-	.option("--config <path>", "Path to Cline configuration directory")
+	.option("--config <path>", "Path to Kody configuration directory")
 	.action(runAuth)
 
 const mcpCommand = program.command("mcp").description("Manage MCP servers")
 
 mcpCommand
 	.command("add")
-	.description("Add an MCP server shortcut to cline_mcp_settings.json")
+	.description("Add an MCP server shortcut to kody_mcp_settings.json")
 	.argument("<name>", "MCP server name")
 	.argument("[targetOrCommand...]", "For stdio: use -- <command> [args]. For http/sse: provide <url>.")
 	.option("--type <type>", "Transport type: stdio (default), http, or sse", "stdio")
 	.option("-c, --cwd <path>", "Working directory for config resolution")
-	.option("--config <path>", "Path to Cline configuration directory")
+	.option("--config <path>", "Path to Kody configuration directory")
 	.action(addMcpServer)
 
 program
 	.command("version")
-	.description("Show Cline CLI version number")
-	.action(() => printInfo(`Cline CLI version: ${CLI_VERSION}`))
+	.description("Show Kody CLI version number")
+	.action(() => printInfo(`Kody CLI version: ${CLI_VERSION}`))
 
 program
 	.command("update")
@@ -899,7 +899,7 @@ program
 	.option("-v, --verbose", "Show verbose output")
 	.action(() => checkForUpdates(CLI_VERSION))
 
-program.command("kanban").description("Run npx kanban@latest --agent cline").action(runKanbanAlias)
+program.command("kanban").description("Run npx kanban@latest --agent kody").action(runKanbanAlias)
 
 // Dev command with subcommands
 const devCommand = program.command("dev").description("Developer tools and utilities")
@@ -932,7 +932,7 @@ async function resumeTask(taskId: string, options: TaskOptions & { initialPrompt
 	const historyItem = findTaskInHistory(taskId)
 	if (!historyItem) {
 		printWarning(`Task not found: ${taskId}`)
-		printInfo("Use 'cline history' to see available tasks.")
+		printInfo("Use 'kody history' to see available tasks.")
 		await disposeCliContext(ctx)
 		exit(1)
 	}
@@ -984,7 +984,7 @@ async function continueTask(options: TaskOptions) {
 
 	if (!historyItem) {
 		printWarning(`No previous task found for ${ctx.workspacePath}`)
-		printInfo("Start a new task or use 'cline history' to browse previous tasks.")
+		printInfo("Start a new task or use 'kody history' to browse previous tasks.")
 		await disposeCliContext(ctx)
 		exit(1)
 	}
@@ -1050,7 +1050,7 @@ program
 	.option("--auto-condense", "Enable AI-powered context compaction instead of mechanical truncation")
 	.option("--hooks-dir <path>", "Path to additional hooks directory for runtime hook injection")
 	.option("--acp", "Run in ACP (Agent Client Protocol) mode for editor integration")
-	.option("--kanban", "Run npx kanban@latest --agent cline")
+	.option("--kanban", "Run npx kanban@latest --agent kody")
 	.option("-T, --taskId <id>", "Resume an existing task by ID")
 	.option("--continue", "Resume the most recent task from the current working directory")
 	.action(async (prompt, options) => {
@@ -1105,9 +1105,9 @@ program
 
 		// Error if stdin was piped but empty AND no prompt was provided
 		// This handles:
-		// - `echo "" | cline` -> error (empty stdin, no prompt)
-		// - `cline "prompt"` in GitHub Actions -> OK (empty stdin ignored, has prompt)
-		// - `cat file | cline "explain"` -> OK (has stdin AND prompt)
+		// - `echo "" | kody` -> error (empty stdin, no prompt)
+		// - `kody "prompt"` in GitHub Actions -> OK (empty stdin ignored, has prompt)
+		// - `cat file | kody "explain"` -> OK (has stdin AND prompt)
 		if (stdinInput === "" && !prompt) {
 			printWarning("Empty input received from stdin. Please provide content to process.")
 			exit(1)

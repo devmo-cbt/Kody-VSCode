@@ -48,11 +48,11 @@ export async function loadServicesFromProtoDescriptor() {
 		}
 	}
 	const protobusServices = {}
-	for (const [name, def] of Object.entries(proto.cline)) {
+	for (const [name, def] of Object.entries(proto.kody)) {
 		if (def && "service" in def) {
 			protobusServices[name] = def
 		} else {
-			addTypeNameToFqn(name, `proto.cline.${name}`)
+			addTypeNameToFqn(name, `proto.kody.${name}`)
 		}
 	}
 	return { protobusServices, hostServices }

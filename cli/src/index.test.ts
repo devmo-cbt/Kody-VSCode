@@ -14,7 +14,7 @@ describe("CLI Commands", () => {
 	beforeEach(() => {
 		// Create a fresh program instance for each test
 		program = new Command()
-		program.name("cline").description("Cline CLI - AI coding assistant").version("0.0.0")
+		program.name("kody").description("Kody CLI - AI coding assistant").version("0.0.0")
 		program.enablePositionalOptions()
 
 		// Define commands matching index.ts
@@ -80,7 +80,7 @@ describe("CLI Commands", () => {
 
 		program
 			.command("kanban")
-			.description("Run npx kanban@latest --agent cline")
+			.description("Run npx kanban@latest --agent kody")
 			.action(() => {})
 
 		// Default command for interactive mode
@@ -97,7 +97,7 @@ describe("CLI Commands", () => {
 			.option("--auto-condense", "Enable AI-powered context compaction instead of mechanical truncation")
 			.option("--hooks-dir <path>", "Additional hooks directory")
 			.option("--auto-approve-all", "Enable auto-approve all")
-			.option("--kanban", "Run npx kanban@latest --agent cline")
+			.option("--kanban", "Run npx kanban@latest --agent kody")
 			.action(() => {})
 	})
 
@@ -455,7 +455,7 @@ describe("getProviderModelIdKey", () => {
 	// Test the provider model ID key mapping logic
 	const providerKeyMap: Record<string, string> = {
 		openrouter: "OpenRouterModelId",
-		cline: "OpenRouterModelId",
+		kody: "OpenRouterModelId",
 		openai: "OpenAiModelId",
 		ollama: "OllamaModelId",
 		lmstudio: "LmStudioModelId",
@@ -486,8 +486,8 @@ describe("getProviderModelIdKey", () => {
 		expect(getProviderModelIdKey("openrouter", "plan")).toBe("planModeOpenRouterModelId")
 	})
 
-	it("should return same key for cline as openrouter", () => {
-		expect(getProviderModelIdKey("cline", "act")).toBe("actModeOpenRouterModelId")
+	it("should return same key for kody as openrouter", () => {
+		expect(getProviderModelIdKey("kody", "act")).toBe("actModeOpenRouterModelId")
 	})
 
 	it("should return correct key for openai", () => {

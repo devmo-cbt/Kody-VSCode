@@ -1,8 +1,8 @@
 /**
- * ClineAgent - Decoupled ACP Agent implementation for Cline CLI.
+ * KodyAgent - Decoupled ACP Agent implementation for Kody CLI.
  *
  * This class implements the ACP (Agent Client Protocol) Agent interface,
- * allowing Cline to be used programmatically without stdio dependency.
+ * allowing Kody to be used programmatically without stdio dependency.
  * It uses a callback pattern for permission requests and EventEmitters
  * for session updates, enabling embedding in other Node.js applications.
  *
@@ -13,7 +13,7 @@
 
 import type * as acp from "@agentclientprotocol/sdk"
 import { PROTOCOL_VERSION, RequestError } from "@agentclientprotocol/sdk"
-import type { ClineMessageChange } from "@core/task/message-state"
+import type { KodyMessageChange } from "@core/task/message-state"
 import type { ApiProvider } from "@shared/api"
 import {
 	anthropicDefaultModelId,
@@ -36,10 +36,10 @@ import {
 	xaiDefaultModelId,
 	xaiModels,
 } from "@shared/api"
-import type { ClineAsk, ClineMessage as ClineMessageType } from "@shared/ExtensionMessage"
+import type { KodyAsk, KodyMessage as KodyMessageType } from "@shared/ExtensionMessage"
 import { CLI_ONLY_COMMANDS, VSCODE_ONLY_COMMANDS } from "@shared/slashCommands"
 import { getProviderModelIdKey } from "@shared/storage/provider-keys"
-import { ClineEndpoint } from "@/config.js"
+import { KodyEndpoint } from "@/config.js"
 import { Controller } from "@/core/controller"
 import { getAvailableSlashCommands } from "@/core/controller/slash/getAvailableSlashCommands"
 import { setRuntimeHooksDir } from "@/core/storage/disk"
@@ -62,10 +62,10 @@ import { AcpTerminalManager } from "../acp/AcpTerminalManager.js"
 import { isAuthConfigured } from "../utils/auth"
 import { fetchOpenRouterModels, usesOpenRouterModels } from "../utils/openrouter-models"
 import { CliContextResult, initializeCliContext } from "../vscode-context.js"
-import { ClineSessionEmitter } from "./ClineSessionEmitter.js"
+import { KodySessionEmitter } from "./KodySessionEmitter.js"
 import { translateMessage } from "./messageTranslator.js"
 import { handlePermissionResponse } from "./permissionHandler.js"
-import type { ClineAcpSession, ClineAgentOptions, PermissionHandler } from "./public-types.js"
+import type { KodyAcpSession, KodyAgentOptions, PermissionHandler } from "./public-types.js"
 import { AcpSessionStatus } from "./public-types.js"
 import { type AcpSessionState } from "./types.js"
 
@@ -92,9 +92,9 @@ function getModelList(provider: string): string[] {
 }
 
 /**
- * Cline's implementation of the ACP Agent interface.
+ * Kody's implementation of the ACP Agent interface.
  *
- * This agent bridges the ACP protocol with Cline's core Controller,
+ * This agent bridges the ACP protocol with Kody's core Controller,
  * translating ACP requests into Controller operations and emitting
  * session updates via EventEmitters.
  *
@@ -105,21 +105,21 @@ function getModelList(provider: string): string[] {
  *
  * For stdio-based ACP communication, use the AcpAgent wrapper class.
  */
-export class ClineAgent implements acp.Agent {
-	private readonly options: ClineAgentOptions
+export class KodyAgent implements acp.Agent {
+	private readonly options: KodyAgentOptions
 	private readonly ctx: CliContextResult
 
 	/** Map of active sessions by session ID */
-	public readonly sessions: Map<string, ClineAcpSession> = new Map()
+	public readonly sessions: Map<string, KodyAcpSession> = new Map()
 
-	/** WeakMap to associate ClineAcpSession with its Controller without exposing it to consumers */
-	readonly #sessionControllers = new WeakMap<ClineAcpSession, Controller>()
+	/** WeakMap to associate KodyAcpSession with its Controller without exposing it to consumers */
+	readonly #sessionControllers = new WeakMap<KodyAcpSession, Controller>()
 
 	/** Runtime state for active sessions */
 	private readonly sessionStates: Map<string, AcpSessionState> = new Map()
 
 	/** Per-session event emitters for session updates */
-	private readonly sessionEmitters: Map<string, ClineSessionEmitter> = new Map()
+	private readonly sessionEmitters: Map<string, KodySessionEmitter> = new Map()
 
 	/** Permission handler callback for requesting user permission */
 	private permissionHandler?: PermissionHandler
@@ -139,10 +139,10 @@ export class ClineAgent implements acp.Agent {
 	/** Shared WebviewProvider instance for auth and other operations */
 	private webviewProvider: ReturnType<typeof HostProvider.get.prototype.createWebviewProvider> | undefined
 
-	constructor(options: ClineAgentOptions) {
+	constructor(options: KodyAgentOptions) {
 		this.options = options
 		setRuntimeHooksDir(options.hooksDir)
-		this.ctx = initializeCliContext({ clineDir: options.clineDir })
+		this.ctx = initializeCliContext({ kodyDir: options.kodyDir })
 	}
 
 	/**
@@ -167,10 +167,10 @@ export class ClineAgent implements acp.Agent {
 	 * @param sessionId - The session ID
 	 * @returns The session's event emitter
 	 */
-	emitterForSession(sessionId: string): ClineSessionEmitter {
+	emitterForSession(sessionId: string): KodySessionEmitter {
 		let emitter = this.sessionEmitters.get(sessionId)
 		if (!emitter) {
-			emitter = new ClineSessionEmitter()
+			emitter = new KodySessionEmitter()
 			this.sessionEmitters.set(sessionId, emitter)
 		}
 		return emitter
@@ -185,7 +185,7 @@ export class ClineAgent implements acp.Agent {
 	async initialize(params: acp.InitializeRequest, connection?: acp.AgentSideConnection): Promise<acp.InitializeResponse> {
 		this.clientCapabilities = params.clientCapabilities
 		this.initializeHostProvider(this.clientCapabilities, connection)
-		await ClineEndpoint.initialize(this.ctx.EXTENSION_DIR)
+		await KodyEndpoint.initialize(this.ctx.EXTENSION_DIR)
 		await StateManager.initialize(this.ctx.storageContext)
 
 		return {
@@ -203,14 +203,14 @@ export class ClineAgent implements acp.Agent {
 				},
 			},
 			agentInfo: {
-				name: "cline",
+				name: "kody",
 				version: AGENT_VERSION,
 			},
 			authMethods: [
 				{
-					id: "cline-oauth",
-					name: "Sign in with Cline",
-					description: "Authenticate with your Cline account via browser OAuth",
+					id: "kody-oauth",
+					name: "Sign in with Kody",
+					description: "Authenticate with your Kody account via browser OAuth",
 				},
 				{
 					id: "openai-codex-oauth",
@@ -282,7 +282,7 @@ export class ClineAgent implements acp.Agent {
 
 		const sessionId = crypto.randomUUID()
 
-		Logger.debug("[ClineAgent] newSession called:", {
+		Logger.debug("[KodyAgent] newSession called:", {
 			sessionId,
 			cwd: params.cwd,
 			mcpServers: params.mcpServers?.length ?? 0,
@@ -292,7 +292,7 @@ export class ClineAgent implements acp.Agent {
 		const controller = new Controller(this.ctx.extensionContext)
 
 		// Create session record with all resources
-		const session: ClineAcpSession = {
+		const session: KodyAcpSession = {
 			sessionId,
 			cwd: params.cwd,
 			mode: (await controller.getStateToPostToWebview()).mode,
@@ -317,7 +317,7 @@ export class ClineAgent implements acp.Agent {
 		// Send available slash commands to the client
 		// This is done asynchronously after session creation
 		await this.sendAvailableCommands(sessionId, controller).catch((error) => {
-			Logger.debug("[ClineAgent] Failed to send available commands:", error)
+			Logger.debug("[KodyAgent] Failed to send available commands:", error)
 		})
 
 		// Get current model configuration for the response
@@ -347,7 +347,7 @@ export class ClineAgent implements acp.Agent {
 		const providerKey = mode === "act" ? "actModeApiProvider" : "planModeApiProvider"
 		const currentProvider = stateManager.getGlobalSettingsKey(providerKey) as ApiProvider | undefined
 
-		// Use provider-specific model ID key (e.g., cline uses actModeOpenRouterModelId)
+		// Use provider-specific model ID key (e.g., kody uses actModeOpenRouterModelId)
 		const modelKey = currentProvider ? getProviderModelIdKey(currentProvider, mode) : null
 		const currentModelId = modelKey ? stateManager.getGlobalSettingsKey(modelKey) : undefined
 
@@ -395,7 +395,7 @@ export class ClineAgent implements acp.Agent {
 			throw new Error(`Session not found: ${params.sessionId}`)
 		}
 
-		Logger.debug("[ClineAgent] unstable_setSessionModel called:", {
+		Logger.debug("[KodyAgent] unstable_setSessionModel called:", {
 			sessionId: params.sessionId,
 			modelId: params.modelId,
 		})
@@ -415,7 +415,7 @@ export class ClineAgent implements acp.Agent {
 		stateManager.setGlobalState("actModeApiProvider", provider)
 		stateManager.setGlobalState("planModeApiProvider", provider)
 
-		// Update model ID using provider-specific keys (e.g., cline uses actModeOpenRouterModelId)
+		// Update model ID using provider-specific keys (e.g., kody uses actModeOpenRouterModelId)
 		const actProviderModelKey = getProviderModelIdKey(provider, "act")
 		if (actProviderModelKey) {
 			stateManager.setGlobalState(actProviderModelKey, modelId)
@@ -445,11 +445,11 @@ export class ClineAgent implements acp.Agent {
 	 *
 	 * The prompt flow:
 	 * 1. Extract content from the ACP prompt (text, images, files)
-	 * 2. Set up internal cline state subsription
-	 * 3. Initialize or continue cline task
-	 * 4. Translate ClineMessages to ACP SessionUpdates
+	 * 2. Set up internal kody state subsription
+	 * 3. Initialize or continue kody task
+	 * 4. Translate KodyMessages to ACP SessionUpdates
 	 * 5. Handle permission requests for tools/commands
-	 * 6. Return when cline task completes, is cancelled, or needs user input
+	 * 6. Return when kody task completes, is cancelled, or needs user input
 	 */
 	async prompt(params: acp.PromptRequest): Promise<acp.PromptResponse> {
 		const session = this.sessions.get(params.sessionId)
@@ -468,7 +468,7 @@ export class ClineAgent implements acp.Agent {
 			throw new Error("Controller not initialized for session. This is a bug in the ACP agent setup.")
 		}
 
-		Logger.debug("[ClineAgent] prompt called:", {
+		Logger.debug("[KodyAgent] prompt called:", {
 			sessionId: params.sessionId,
 			promptLength: params.prompt.length,
 		})
@@ -519,7 +519,7 @@ export class ClineAgent implements acp.Agent {
 
 			if (isLoadedSession && !hasActiveTask) {
 				// First prompt on a loaded session - resume the task from history
-				Logger.debug("[ClineAgent] Resuming loaded session:", params.sessionId)
+				Logger.debug("[KodyAgent] Resuming loaded session:", params.sessionId)
 
 				// Clear the flag so subsequent prompts are handled normally
 				session.isLoadedFromHistory = false
@@ -534,10 +534,10 @@ export class ClineAgent implements acp.Agent {
 				}
 			} else if (hasActiveTask && controller.task) {
 				// Continue existing task - respond to pending ask
-				Logger.debug("[ClineAgent] Continuing existing task:", controller.task.taskId)
+				Logger.debug("[KodyAgent] Continuing existing task:", controller.task.taskId)
 
 				// Find the last ask message and respond to it
-				const messages = controller.task.messageStateHandler.getClineMessages()
+				const messages = controller.task.messageStateHandler.getKodyMessages()
 				const lastAskMessage = [...messages].reverse().find((m) => m.type === "ask")
 
 				if (lastAskMessage) {
@@ -545,28 +545,28 @@ export class ClineAgent implements acp.Agent {
 				} else {
 					// No pending ask - treat as new user message
 					// This shouldn't normally happen but handle gracefully
-					Logger.debug("[ClineAgent] No pending ask found, starting new task")
+					Logger.debug("[KodyAgent] No pending ask found, starting new task")
 					await controller.initTask(textContent, imageContent, fileResources)
 				}
 			} else {
 				// Start new task
-				Logger.debug("[ClineAgent] Starting new task")
+				Logger.debug("[KodyAgent] Starting new task")
 				await controller.initTask(textContent, imageContent, fileResources)
 			}
 
-			// Subscribe to clineMessages changes after task is created
+			// Subscribe to kodyMessages changes after task is created
 			if (controller.task) {
-				const onClineMessagesChanged = (change: ClineMessageChange) => {
-					this.handleClineMessagesChanged(params.sessionId, sessionState, change, resolvePrompt, promptResolved).catch(
+				const onKodyMessagesChanged = (change: KodyMessageChange) => {
+					this.handleKodyMessagesChanged(params.sessionId, sessionState, change, resolvePrompt, promptResolved).catch(
 						(error) => {
-							Logger.debug("[ClineAgent] Error handling clineMessagesChanged:", error)
+							Logger.debug("[KodyAgent] Error handling kodyMessagesChanged:", error)
 						},
 					)
 				}
 
-				controller.task.messageStateHandler.on("clineMessagesChanged", onClineMessagesChanged)
+				controller.task.messageStateHandler.on("kodyMessagesChanged", onKodyMessagesChanged)
 				cleanupFunctions.push(() => {
-					controller.task?.messageStateHandler.off("clineMessagesChanged", onClineMessagesChanged)
+					controller.task?.messageStateHandler.off("kodyMessagesChanged", onKodyMessagesChanged)
 				})
 			}
 
@@ -592,21 +592,21 @@ export class ClineAgent implements acp.Agent {
 				try {
 					cleanup()
 				} catch (error) {
-					Logger.debug("[ClineAgent] Error during cleanup:", error)
+					Logger.debug("[KodyAgent] Error during cleanup:", error)
 				}
 			}
 			sessionState.status = AcpSessionStatus.Idle
 		}
 	}
 
-	private async handleClineMessagesChanged(
+	private async handleKodyMessagesChanged(
 		sessionId: string,
 		sessionState: AcpSessionState,
-		change: ClineMessageChange,
+		change: KodyMessageChange,
 		resolvePrompt: (response: acp.PromptResponse) => void,
 		promptResolved: { value: boolean },
 	): Promise<void> {
-		Logger.debug("[ClineAgent] handleClineMessagesChanged:", change)
+		Logger.debug("[KodyAgent] handleKodyMessagesChanged:", change)
 		try {
 			switch (change.type) {
 				case "add":
@@ -633,7 +633,7 @@ export class ClineAgent implements acp.Agent {
 					break
 			}
 		} catch (error) {
-			Logger.debug("[ClineAgent] Error handling clineMessagesChanged:", error)
+			Logger.debug("[KodyAgent] Error handling kodyMessagesChanged:", error)
 		}
 	}
 
@@ -643,40 +643,40 @@ export class ClineAgent implements acp.Agent {
 	 * This method:
 	 * 1. Sends the permission request to the client
 	 * 2. Waits for the user's decision
-	 * 3. Responds to Cline's ask based on the decision
+	 * 3. Responds to Kody's ask based on the decision
 	 *
 	 * @param sessionId - The session ID
 	 * @param sessionState - The session state
-	 * @param message - The Cline ask message
+	 * @param message - The Kody ask message
 	 * @param permissionRequest - The permission request details from translateMessage
 	 */
 	private async handlePermissionRequest(
 		sessionId: string,
 		sessionState: AcpSessionState,
-		message: ClineMessageType,
+		message: KodyMessageType,
 		permissionRequest: Omit<acp.RequestPermissionRequest, "sessionId">,
 	): Promise<void> {
 		const session = this.sessions.get(sessionId)
 
 		if (!session) {
-			Logger.debug("[ClineAgent] No session found for permission request")
+			Logger.debug("[KodyAgent] No session found for permission request")
 			return
 		}
 
 		const controller = this.#sessionControllers.get(session)
 
 		if (!controller?.task) {
-			Logger.debug("[ClineAgent] No active task for permission request")
+			Logger.debug("[KodyAgent] No active task for permission request")
 			return
 		}
 
-		const askType = message.ask as ClineAsk
+		const askType = message.ask as KodyAsk
 
 		try {
 			// Request permission from the client
 			const response = await this.requestPermission(sessionId, permissionRequest.toolCall, permissionRequest.options)
 
-			Logger.debug("[ClineAgent] Permission response received:", response.outcome)
+			Logger.debug("[KodyAgent] Permission response received:", response.outcome)
 
 			// Handle the response
 			const result = handlePermissionResponse(response, askType)
@@ -707,16 +707,16 @@ export class ClineAgent implements acp.Agent {
 				}
 			}
 
-			// Respond to Cline's ask based on the permission result
+			// Respond to Kody's ask based on the permission result
 			if (result.cancelled) {
 				// Cancellation - reject the operation
 				await controller.task.handleWebviewAskResponse("noButtonClicked")
 			} else {
-				// Pass the response to Cline
+				// Pass the response to Kody
 				await controller.task.handleWebviewAskResponse(result.response, result.text)
 			}
 		} catch (error) {
-			Logger.debug("[ClineAgent] Error handling permission request:", error)
+			Logger.debug("[KodyAgent] Error handling permission request:", error)
 
 			// Update tool call status to failed
 			if (sessionState.currentToolCallId) {
@@ -737,7 +737,7 @@ export class ClineAgent implements acp.Agent {
 	 * Check if a message should resolve the prompt (end the turn).
 	 */
 	private checkMessageForPromptResolution(
-		message: ClineMessageType,
+		message: KodyMessageType,
 		resolvePrompt: (response: acp.PromptResponse) => void,
 		promptResolved: { value: boolean },
 	): void {
@@ -748,7 +748,7 @@ export class ClineAgent implements acp.Agent {
 
 		// Check for ask messages that require user input
 		if (message.type === "ask") {
-			const askType = message.ask as ClineAsk
+			const askType = message.ask as KodyAsk
 			if (
 				askType === "followup" ||
 				askType === "plan_mode_respond" ||
@@ -773,7 +773,7 @@ export class ClineAgent implements acp.Agent {
 	/**
 	 * Process a message and compute deltas for streaming content.
 	 *
-	 * This method uses translateMessage to properly map ClineMessages to ACP SessionUpdates,
+	 * This method uses translateMessage to properly map KodyMessages to ACP SessionUpdates,
 	 * while computing deltas for text content to avoid sending duplicate content during
 	 * streaming updates.
 	 *
@@ -788,7 +788,7 @@ export class ClineAgent implements acp.Agent {
 	private async processMessageWithDelta(
 		sessionId: string,
 		sessionState: AcpSessionState,
-		message: ClineMessageType,
+		message: KodyMessageType,
 	): Promise<void> {
 		const messageKey = message.ts
 		const lastText = this.partialMessageLastContent.get(messageKey) || ""
@@ -873,7 +873,7 @@ export class ClineAgent implements acp.Agent {
 			// Only process permissions for non-partial (complete) ask messages
 			if (result.requiresPermission && result.permissionRequest && !message.partial) {
 				// Handle the permission request asynchronously
-				// This will request permission from the client and respond to Cline
+				// This will request permission from the client and respond to Kody
 				await this.handlePermissionRequest(sessionId, sessionState, message, result.permissionRequest)
 			}
 
@@ -898,12 +898,12 @@ export class ClineAgent implements acp.Agent {
 	async cancel(params: acp.CancelNotification): Promise<void> {
 		const session = this.sessions.get(params.sessionId)
 		if (!session) {
-			Logger.debug("[ClineAgent] cancel called for non-existent session:", params.sessionId)
+			Logger.debug("[KodyAgent] cancel called for non-existent session:", params.sessionId)
 			return
 		}
 		const sessionState = this.sessionStates.get(params.sessionId)
 
-		Logger.debug("[ClineAgent] cancel called:", {
+		Logger.debug("[KodyAgent] cancel called:", {
 			sessionId: params.sessionId,
 			status: sessionState?.status,
 		})
@@ -917,7 +917,7 @@ export class ClineAgent implements acp.Agent {
 				try {
 					await controller.cancelTask()
 				} catch (error) {
-					Logger.debug("[ClineAgent] Error cancelling task:", error)
+					Logger.debug("[KodyAgent] Error cancelling task:", error)
 				}
 			}
 		}
@@ -926,7 +926,7 @@ export class ClineAgent implements acp.Agent {
 	/**
 	 * Set the session mode (plan/act).
 	 *
-	 * Cline supports two modes:
+	 * Kody supports two modes:
 	 * - "plan": Gather information and create a detailed plan
 	 * - "act": Execute actions to accomplish the task
 	 */
@@ -937,7 +937,7 @@ export class ClineAgent implements acp.Agent {
 			throw new Error(`Session not found: ${params.sessionId}`)
 		}
 
-		Logger.debug("[ClineAgent] setSessionMode called:", {
+		Logger.debug("[KodyAgent] setSessionMode called:", {
 			sessionId: params.sessionId,
 			modeId: params.modeId,
 		})
@@ -970,18 +970,18 @@ export class ClineAgent implements acp.Agent {
 	 * Handle authentication requests.
 	 *
 	 * This method implements OAuth flows for:
-	 * - Cline account authentication (cline-oauth)
+	 * - Kody account authentication (kody-oauth)
 	 * - OpenAI Codex/ChatGPT authentication (openai-codex-oauth)
 	 */
 	async authenticate(params: acp.AuthenticateRequest): Promise<acp.AuthenticateResponse> {
-		Logger.debug("[ClineAgent] authenticate called:", { methodId: params.methodId })
+		Logger.debug("[KodyAgent] authenticate called:", { methodId: params.methodId })
 
 		// Handle OpenAI Codex OAuth flow
 		if (params.methodId === "openai-codex-oauth") {
 			return this.authenticateOpenAiCodex()
 		}
 
-		if (params.methodId !== "cline-oauth") {
+		if (params.methodId !== "kody-oauth") {
 			throw new Error(`Unknown authentication method: ${params.methodId}`)
 		}
 
@@ -989,15 +989,15 @@ export class ClineAgent implements acp.Agent {
 		const authHandler = AuthHandler.getInstance()
 		authHandler.setEnabled(true)
 
-		Logger.debug("[ClineAgent] AuthHandler enabled, getting callback URL...")
+		Logger.debug("[KodyAgent] AuthHandler enabled, getting callback URL...")
 
 		// Get the callback URL first to ensure the server is ready
 		let callbackUrl: string
 		try {
 			callbackUrl = await authHandler.getCallbackUrl("/auth")
-			Logger.debug("[ClineAgent] Callback URL ready:", callbackUrl)
+			Logger.debug("[KodyAgent] Callback URL ready:", callbackUrl)
 		} catch (error) {
-			Logger.error("[ClineAgent] Failed to get callback URL:", error)
+			Logger.error("[KodyAgent] Failed to get callback URL:", error)
 			throw new Error(`Failed to start auth server: ${error instanceof Error ? error.message : String(error)}`)
 		}
 
@@ -1011,12 +1011,12 @@ export class ClineAgent implements acp.Agent {
 			// Get the AuthService instance with the webview's controller
 			const authService = AuthService.getInstance(this.webviewProvider.controller)
 
-			Logger.debug("[ClineAgent] Starting OAuth flow...")
+			Logger.debug("[KodyAgent] Starting OAuth flow...")
 
 			// Start the OAuth flow - this opens the browser
 			await authService.createAuthRequest()
 
-			Logger.debug("[ClineAgent] Browser opened, waiting for callback...")
+			Logger.debug("[KodyAgent] Browser opened, waiting for callback...")
 
 			// Wait for authentication to complete (with timeout)
 			const AUTH_TIMEOUT_MS = 5 * 60 * 1000 // 5 minutes
@@ -1028,13 +1028,13 @@ export class ClineAgent implements acp.Agent {
 				const stateManager = StateManager.get()
 
 				// Check if auth data has been stored
-				const authData = stateManager.getSecretKey("cline:clineAccountId")
+				const authData = stateManager.getSecretKey("kody:kodyAccountId")
 				if (authData) {
-					Logger.debug("[ClineAgent] Authentication successful")
+					Logger.debug("[KodyAgent] Authentication successful")
 
-					// Set up the provider configuration for cline
-					stateManager.setGlobalState("actModeApiProvider", "cline")
-					stateManager.setGlobalState("planModeApiProvider", "cline")
+					// Set up the provider configuration for kody
+					stateManager.setGlobalState("actModeApiProvider", "kody")
+					stateManager.setGlobalState("planModeApiProvider", "kody")
 					await stateManager.flushPendingState()
 
 					return {}
@@ -1046,7 +1046,7 @@ export class ClineAgent implements acp.Agent {
 
 			throw new Error("Authentication timed out. Please try again.")
 		} catch (error) {
-			Logger.error("[ClineAgent] Authentication error:", error)
+			Logger.error("[KodyAgent] Authentication error:", error)
 			throw error
 		}
 	}
@@ -1067,7 +1067,7 @@ export class ClineAgent implements acp.Agent {
 		try {
 			emitter.emit(update.sessionUpdate, update)
 		} catch (error) {
-			Logger.debug("[ClineAgent] Error emitting session update:", error)
+			Logger.debug("[KodyAgent] Error emitting session update:", error)
 			emitter.emit("error", error instanceof Error ? error : new Error(String(error)))
 		}
 	}
@@ -1088,14 +1088,14 @@ export class ClineAgent implements acp.Agent {
 		toolCall: acp.ToolCallUpdate,
 		options: acp.PermissionOption[],
 	): Promise<acp.RequestPermissionResponse> {
-		Logger.debug("[ClineAgent] Requesting permission:", {
+		Logger.debug("[KodyAgent] Requesting permission:", {
 			toolCallId: toolCall.toolCallId,
 			options: options.map((o) => o.optionId),
 		})
 
 		if (!this.permissionHandler) {
 			// No permission handler set - auto-reject for safety
-			Logger.debug("[ClineAgent] No permission handler set, auto-rejecting")
+			Logger.debug("[KodyAgent] No permission handler set, auto-rejecting")
 			return { outcome: "rejected" as unknown as acp.RequestPermissionOutcome }
 		}
 
@@ -1122,12 +1122,12 @@ export class ClineAgent implements acp.Agent {
 	/**
 	 * Get available slash commands and send them to the client.
 	 *
-	 * This fetches commands from Cline's slash command system, filters out
+	 * This fetches commands from Kody's slash command system, filters out
 	 * CLI-only and VS Code-only commands, and converts them to ACP format.
 	 */
 	private async sendAvailableCommands(sessionId: string, controller: Controller): Promise<void> {
 		try {
-			// Get all available commands from Cline
+			// Get all available commands from Kody
 			const response = await getAvailableSlashCommands(controller, {})
 
 			// Filter out CLI-only and VS Code-only commands
@@ -1153,13 +1153,13 @@ export class ClineAgent implements acp.Agent {
 				availableCommands,
 			})
 
-			Logger.debug("[ClineAgent] Sent available commands:", {
+			Logger.debug("[KodyAgent] Sent available commands:", {
 				sessionId,
 				commandCount: availableCommands.length,
 				commands: availableCommands.map((c) => c.name),
 			})
 		} catch (error) {
-			Logger.debug("[ClineAgent] Error sending available commands:", error)
+			Logger.debug("[KodyAgent] Error sending available commands:", error)
 		}
 	}
 
@@ -1173,13 +1173,13 @@ export class ClineAgent implements acp.Agent {
 	 * 4. Configures the provider on success
 	 */
 	private async authenticateOpenAiCodex(): Promise<acp.AuthenticateResponse> {
-		Logger.debug("[ClineAgent] Starting OpenAI Codex OAuth flow...")
+		Logger.debug("[KodyAgent] Starting OpenAI Codex OAuth flow...")
 
 		try {
 			// Get the authorization URL and start the callback server
 			const authUrl = openAiCodexOAuthManager.startAuthorizationFlow()
 
-			Logger.debug("[ClineAgent] Opening browser for OpenAI Codex auth:", authUrl)
+			Logger.debug("[KodyAgent] Opening browser for OpenAI Codex auth:", authUrl)
 
 			// Open browser to authorization URL
 			await openExternal(authUrl)
@@ -1187,7 +1187,7 @@ export class ClineAgent implements acp.Agent {
 			// Wait for the callback (blocks until auth completes or times out)
 			await openAiCodexOAuthManager.waitForCallback()
 
-			Logger.debug("[ClineAgent] OpenAI Codex authentication successful")
+			Logger.debug("[KodyAgent] OpenAI Codex authentication successful")
 
 			// Success - configure the provider
 			const stateManager = StateManager.get()
@@ -1204,7 +1204,7 @@ export class ClineAgent implements acp.Agent {
 		} catch (error) {
 			// Clean up on error
 			openAiCodexOAuthManager.cancelAuthorizationFlow()
-			Logger.error("[ClineAgent] OpenAI Codex authentication error:", error)
+			Logger.error("[KodyAgent] OpenAI Codex authentication error:", error)
 			throw error
 		}
 	}

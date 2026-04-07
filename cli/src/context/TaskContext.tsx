@@ -4,8 +4,8 @@
  */
 
 import { registerPartialMessageCallback } from "@core/controller/ui/subscribeToPartialMessage"
-import type { ClineMessage, ExtensionState } from "@shared/ExtensionMessage"
-import { convertProtoToClineMessage } from "@shared/proto-conversions/cline-message"
+import type { ExtensionState, KodyMessage } from "@shared/ExtensionMessage"
+import { convertProtoToKodyMessage } from "@shared/proto-conversions/kody-message"
 import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from "react"
 
 interface TaskContextType {
@@ -29,7 +29,7 @@ export const TaskContextProvider: React.FC<TaskContextProviderProps> = ({ contro
 	const [state, setState] = useState<Partial<ExtensionState>>(
 		() =>
 			({
-				clineMessages: [],
+				kodyMessages: [],
 				currentTaskItem: null,
 			}) as unknown as Partial<ExtensionState>,
 	)
@@ -49,8 +49,8 @@ export const TaskContextProvider: React.FC<TaskContextProviderProps> = ({ contro
 				const newState = await controller.getStateToPostToWebview()
 				// Ignore transient empty messages state during cancel/reinit
 				// When clearTask() runs, messages briefly become [] before new task loads them
-				const hadMessages = (stateRef.current.clineMessages?.length ?? 0) > 0
-				const hasMessages = (newState.clineMessages?.length ?? 0) > 0
+				const hadMessages = (stateRef.current.kodyMessages?.length ?? 0) > 0
+				const hasMessages = (newState.kodyMessages?.length ?? 0) > 0
 				if (hadMessages && !hasMessages) {
 					return
 				}
@@ -68,15 +68,15 @@ export const TaskContextProvider: React.FC<TaskContextProviderProps> = ({ contro
 
 		// Subscribe to partial message events (for streaming updates)
 		const unsubscribePartial = registerPartialMessageCallback((protoMessage) => {
-			const updatedMessage = convertProtoToClineMessage(protoMessage) as ClineMessage
+			const updatedMessage = convertProtoToKodyMessage(protoMessage) as KodyMessage
 			setState((prevState) => {
-				const messages = prevState.clineMessages || []
+				const messages = prevState.kodyMessages || []
 				// Find and update the message by timestamp
 				const index = messages.findIndex((m) => m.ts === updatedMessage.ts)
 				if (index >= 0) {
 					const newMessages = [...messages]
 					newMessages[index] = updatedMessage
-					return { ...prevState, clineMessages: newMessages }
+					return { ...prevState, kodyMessages: newMessages }
 				}
 				return prevState
 			})
@@ -95,7 +95,7 @@ export const TaskContextProvider: React.FC<TaskContextProviderProps> = ({ contro
 	// Force clear state (bypasses the empty messages check for intentional clears like /clear)
 	const clearState = () => {
 		setState({
-			clineMessages: [],
+			kodyMessages: [],
 			currentTaskItem: null,
 		} as unknown as Partial<ExtensionState>)
 	}

@@ -1,14 +1,14 @@
 /**
  * Account info view component
- * Shows current provider, and for Cline provider: credit balance and organization name
+ * Shows current provider, and for Kody provider: credit balance and organization name
  */
 
 import { Box, Text } from "ink"
 import React, { useCallback, useEffect, useState } from "react"
 import { Controller } from "@/core/controller"
 import { StateManager } from "@/core/storage/StateManager"
-import { ClineAccountService } from "@/services/account/ClineAccountService"
-import { AuthService, ClineAccountOrganization } from "@/services/auth/AuthService"
+import { KodyAccountService } from "@/services/account/KodyAccountService"
+import { AuthService, KodyAccountOrganization } from "@/services/auth/AuthService"
 import { LoadingSpinner } from "./Spinner"
 
 interface AccountInfoViewProps {
@@ -38,7 +38,7 @@ function formatBalance(balance: number | null): string {
 export const AccountInfoView: React.FC<AccountInfoViewProps> = React.memo(({ controller }) => {
 	const [provider, setProvider] = useState<string | null>(null)
 	const [balance, setBalance] = useState<number | null>(null)
-	const [organization, setOrganization] = useState<ClineAccountOrganization | null>(null)
+	const [organization, setOrganization] = useState<KodyAccountOrganization | null>(null)
 	const [email, setEmail] = useState<string | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
@@ -53,10 +53,10 @@ export const AccountInfoView: React.FC<AccountInfoViewProps> = React.memo(({ con
 			const mode = stateManager.getGlobalSettingsKey("mode") as string
 			const providerKey = mode === "act" ? "actModeApiProvider" : "planModeApiProvider"
 			const currentProvider = stateManager.getGlobalSettingsKey(providerKey) as string
-			setProvider(currentProvider || "cline")
+			setProvider(currentProvider || "kody")
 
-			// If using Cline provider, fetch additional info
-			if (currentProvider === "cline") {
+			// If using Kody provider, fetch additional info
+			if (currentProvider === "kody") {
 				const authService = AuthService.getInstance(controller)
 
 				// Wait for auth to be restored - poll until we have auth info or timeout
@@ -73,7 +73,7 @@ export const AccountInfoView: React.FC<AccountInfoViewProps> = React.memo(({ con
 				if (authInfo?.user?.email) {
 					setEmail(authInfo.user.email)
 				} else {
-					// User not logged in to Cline
+					// User not logged in to Kody
 					setEmail(null)
 					setIsLoading(false)
 					return
@@ -90,7 +90,7 @@ export const AccountInfoView: React.FC<AccountInfoViewProps> = React.memo(({ con
 
 				// Fetch credit balance
 				try {
-					const accountService = ClineAccountService.getInstance()
+					const accountService = KodyAccountService.getInstance()
 					const activeOrgId = authService.getActiveOrganizationId()
 
 					if (activeOrgId) {
@@ -139,8 +139,8 @@ export const AccountInfoView: React.FC<AccountInfoViewProps> = React.memo(({ con
 		)
 	}
 
-	// If not using Cline provider, just show the provider name
-	if (provider !== "cline") {
+	// If not using Kody provider, just show the provider name
+	if (provider !== "kody") {
 		return (
 			<Box>
 				<Text color="gray">Provider: </Text>
@@ -149,24 +149,24 @@ export const AccountInfoView: React.FC<AccountInfoViewProps> = React.memo(({ con
 		)
 	}
 
-	// Cline provider but not logged in
+	// Kody provider but not logged in
 	if (!email) {
 		return (
 			<Box>
 				<Text color="gray">Provider: </Text>
-				<Text color="cyan">Cline</Text>
+				<Text color="cyan">Kody</Text>
 				<Text color="gray"> • </Text>
-				<Text color="yellow">Not logged in (run 'cline auth' to sign in)</Text>
+				<Text color="yellow">Not logged in (run 'kody auth' to sign in)</Text>
 			</Box>
 		)
 	}
 
-	// Cline provider - show full account info
+	// Kody provider - show full account info
 	return (
 		<Box flexDirection="column">
 			<Box>
 				<Text color="gray">Provider: </Text>
-				<Text color="cyan">Cline</Text>
+				<Text color="cyan">Kody</Text>
 				{email && (
 					<Box>
 						<Text color="gray"> • </Text>

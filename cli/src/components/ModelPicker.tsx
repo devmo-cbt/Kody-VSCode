@@ -67,7 +67,7 @@ import {
 	xaiDefaultModelId,
 	xaiModels,
 } from "@/shared/api"
-import { StringRequest } from "@/shared/proto/cline/common"
+import { StringRequest } from "@/shared/proto/kody/common"
 import { filterOpenRouterModelIds } from "@/shared/utils/model-filters"
 import { COLORS } from "../constants/colors"
 import { getOpenRouterDefaultModelId, usesOpenRouterModels } from "../utils/openrouter-models"

@@ -75,14 +75,14 @@ async function ensureInitPy(dir) {
 /**
  * Parse proto files to extract service names with their source file and package.
  * Returns array of:
- * { serviceName: string, serviceKey: string, protoPackage: "cline"|"host", moduleBase: string }
+ * { serviceName: string, serviceKey: string, protoPackage: "kody"|"host", moduleBase: string }
  */
 async function parseServicesWithFiles(protoDir, protoFiles) {
 	const services = []
 	for (const relPath of protoFiles) {
 		const full = path.join(protoDir, relPath)
 		const content = await fs.readFile(full, "utf8")
-		const pkg = relPath.startsWith("host/") ? "host" : "cline"
+		const pkg = relPath.startsWith("host/") ? "host" : "kody"
 		const moduleBase = path.basename(relPath, ".proto")
 		const serviceRe = /service\s+(\w+Service)\s*\{([\s\S]*?)\}/g
 		for (const m of content.matchAll(serviceRe)) {
@@ -273,8 +273,8 @@ async function generateServiceClientsPy(outDir, services) {
         :return: iterator of ${aliasPb2}.${respTypeName}
         """
         return self._stub.${m.name}(req)`
-				} else {
-					return `
+				}
+				return `
     def ${m.name}(self, req):
         """
         Unary RPC.
@@ -282,7 +282,6 @@ async function generateServiceClientsPy(outDir, services) {
         :return: ${aliasPb2}.${respTypeName}
         """
         return self._stub.${m.name}(req)`
-				}
 			})
 			.join("\n")
 
@@ -308,7 +307,7 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cline-grpc-python"
+name = "kody-grpc-python"
 version = "0.1.0"
 description = "Generated Python gRPC stubs and client wrappers for Cline protos"
 license = { text: "Apache-2.0" }
@@ -390,7 +389,7 @@ async function main() {
 	// Ensure package structure (__init__.py) for imports
 	await ensureInitPy(PY_OUT_DIR)
 	try {
-		const clineDir = path.join(PY_OUT_DIR, "cline")
+		const clineDir = path.join(PY_OUT_DIR, "kody")
 		const hostDir = path.join(PY_OUT_DIR, "host")
 		// These may or may not exist depending on which protos are present
 		await fs

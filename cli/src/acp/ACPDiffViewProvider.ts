@@ -18,7 +18,7 @@ import * as iconv from "iconv-lite"
 import { HostProvider } from "@/hosts/host-provider"
 import { FileEditProvider } from "@/integrations/editor/FileEditProvider"
 import { detectEncoding } from "@/integrations/misc/extract-text"
-import type { FileDiagnostics } from "@/shared/proto/index.cline"
+import type { FileDiagnostics } from "@/shared/proto/index.kody"
 import { Logger } from "@/shared/services/Logger"
 
 /**
@@ -211,7 +211,7 @@ export class ACPDiffViewProvider extends FileEditProvider {
 	 * content via the ACP connection. Otherwise, it falls back to the
 	 * FileEditProvider's local fs implementation.
 	 */
-	protected override async saveDocument(): Promise<Boolean> {
+	protected override async saveDocument(): Promise<boolean> {
 		// If we can't write files via ACP, fall back to FileEditProvider
 		if (!this.canWriteFile()) {
 			Logger.debug("[ACPDiffViewProvider] Client does not support fs.writeTextFile, falling back to local fs")

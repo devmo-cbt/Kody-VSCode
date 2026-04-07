@@ -17,15 +17,15 @@ import type { Controller } from "@/core/controller"
 import { refreshOcaModels } from "@/core/controller/models/refreshOcaModels"
 import { StateManager } from "@/core/storage/StateManager"
 import { openAiCodexOAuthManager } from "@/integrations/openai-codex/oauth"
-import { ClineAccountService } from "@/services/account/ClineAccountService"
-import { AuthService, ClineAccountOrganization } from "@/services/auth/AuthService"
-import { StringRequest } from "@/shared/proto/cline/common"
+import { KodyAccountService } from "@/services/account/KodyAccountService"
+import { AuthService, KodyAccountOrganization } from "@/services/auth/AuthService"
+import { StringRequest } from "@/shared/proto/kody/common"
 import { openExternal } from "@/utils/env"
 import { supportsReasoningEffortForModel } from "@/utils/model-utils"
 import { version as CLI_VERSION } from "../../package.json"
 import { COLORS } from "../constants/colors"
 import { useStdinContext } from "../context/StdinContext"
-import { useClineFeaturedModels } from "../hooks/useClineFeaturedModels"
+import { useKodyFeaturedModels } from "../hooks/useKodyFeaturedModels"
 import { useOcaAuth } from "../hooks/useOcaAuth"
 import { isMouseEscapeSequence } from "../utils/input"
 import { applyBedrockConfig, applyProviderConfig } from "../utils/provider-config"
@@ -91,7 +91,7 @@ const FEATURE_SETTINGS = {
 		stateKey: "subagentsEnabled",
 		default: false,
 		label: "Subagents",
-		description: "Let Cline run focused subagents in parallel to explore the codebase for you",
+		description: "Let Kody run focused subagents in parallel to explore the codebase for you",
 	},
 	autoCondense: {
 		stateKey: "useAutoCondense",
@@ -100,7 +100,7 @@ const FEATURE_SETTINGS = {
 		description: "Automatically summarize long conversations",
 	},
 	webTools: {
-		stateKey: "clineWebToolsEnabled",
+		stateKey: "kodyWebToolsEnabled",
 		default: true,
 		label: "Web tools",
 		description: "Enable web search and fetch tools",
@@ -162,7 +162,7 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 	)
 	const [isPickingFeaturedModel, setIsPickingFeaturedModel] = useState(initialMode === "featured-models")
 	const [featuredModelIndex, setFeaturedModelIndex] = useState(0)
-	const featuredModels = useClineFeaturedModels()
+	const featuredModels = useKodyFeaturedModels()
 	const [isPickingProvider, setIsPickingProvider] = useState(false)
 	const [isPickingLanguage, setIsPickingLanguage] = useState(false)
 	const [isEnteringApiKey, setIsEnteringApiKey] = useState(false)
@@ -224,11 +224,11 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 	// Account tab state
 	const [accountEmail, setAccountEmail] = useState<string | null>(null)
 	const [accountBalance, setAccountBalance] = useState<number | null>(null)
-	const [accountOrganization, setAccountOrganization] = useState<ClineAccountOrganization | null>(null)
-	const [accountOrganizations, setAccountOrganizations] = useState<ClineAccountOrganization[] | null>(null)
+	const [accountOrganization, setAccountOrganization] = useState<KodyAccountOrganization | null>(null)
+	const [accountOrganizations, setAccountOrganizations] = useState<KodyAccountOrganization[] | null>(null)
 	const [isAccountLoading, setIsAccountLoading] = useState(false)
 	const [isPickingOrganization, setIsPickingOrganization] = useState(false)
-	const [isWaitingForClineAuth, setIsWaitingForClineAuth] = useState(false)
+	const [isWaitingForKodyAuth, setIsWaitingForKodyAuth] = useState(false)
 	const [accountChecked, setAccountChecked] = useState(false) // Tracks if we've already checked auth
 
 	// Get current provider and model info
@@ -317,7 +317,7 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 				return
 			}
 
-			const accountService = ClineAccountService.getInstance()
+			const accountService = KodyAccountService.getInstance()
 
 			// Fetch fresh organization info from server (like webview's getUserOrganizations RPC)
 			// Don't use authService.getUserOrganizations() as it returns cached data
@@ -354,23 +354,23 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 		}
 	}, [controller])
 
-	// Handle Cline login - starts OAuth flow
-	const handleClineLogin = useCallback(() => {
+	// Handle Kody login - starts OAuth flow
+	const handleKodyLogin = useCallback(() => {
 		if (!controller) {
 			return
 		}
 		// Set waiting state first (synchronously) to show the waiting UI immediately
-		setIsWaitingForClineAuth(true)
+		setIsWaitingForKodyAuth(true)
 		// Then start the auth request (async, but we don't need to await)
 		AuthService.getInstance(controller)
 			.createAuthRequest()
 			.catch(() => {
-				setIsWaitingForClineAuth(false)
+				setIsWaitingForKodyAuth(false)
 			})
 	}, [controller])
 
-	// Handle Cline logout
-	const handleClineLogout = useCallback(async () => {
+	// Handle Kody logout
+	const handleKodyLogout = useCallback(async () => {
 		if (!controller) {
 			return
 		}
@@ -390,7 +390,7 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 			}
 			setIsPickingOrganization(false)
 			try {
-				await ClineAccountService.getInstance().switchAccount(orgId || undefined)
+				await KodyAccountService.getInstance().switchAccount(orgId || undefined)
 				// Refetch fresh org data from server
 				await fetchAccountInfo()
 			} catch {
@@ -407,9 +407,9 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 		}
 	}, [currentTab, accountEmail, isAccountLoading, accountChecked, controller, fetchAccountInfo])
 
-	// Subscribe to auth status updates when waiting for Cline auth
+	// Subscribe to auth status updates when waiting for Kody auth
 	useEffect(() => {
-		if (!isWaitingForClineAuth || !controller) {
+		if (!isWaitingForKodyAuth || !controller) {
 			return
 		}
 
@@ -421,10 +421,10 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 				return
 			}
 			if (authState.user?.email) {
-				setIsWaitingForClineAuth(false)
+				setIsWaitingForKodyAuth(false)
 				setAccountChecked(false) // Reset so fetchAccountInfo can run
-				await applyProviderConfig({ providerId: "cline", controller })
-				setProvider("cline")
+				await applyProviderConfig({ providerId: "kody", controller })
+				setProvider("kody")
 				refreshModelIds()
 				fetchAccountInfo()
 			}
@@ -435,7 +435,7 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 		return () => {
 			cancelled = true
 		}
-	}, [isWaitingForClineAuth, controller, fetchAccountInfo])
+	}, [isWaitingForKodyAuth, controller, fetchAccountInfo])
 
 	// Build items list based on current tab
 	const items: ListItem[] = useMemo(() => {
@@ -455,7 +455,7 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 						type: "editable",
 						value: provider ? getProviderLabel(provider) : "not configured",
 					},
-					...(provider === "cline"
+					...(provider === "kody"
 						? [{ key: "viewAccount", label: "View account", type: "action" as const, value: "" }]
 						: []),
 					...(separateModels
@@ -632,7 +632,7 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 						label: "Enable notifications",
 						type: "checkbox",
 						value: autoApproveSettings.enableNotifications,
-						description: "System alerts when Cline needs your attention",
+						description: "System alerts when Kody needs your attention",
 					},
 				)
 				return result
@@ -655,10 +655,10 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 						label: "Error/usage reporting",
 						type: "checkbox",
 						value: telemetry !== "disabled",
-						description: "Help improve Cline by sending anonymous usage data",
+						description: "Help improve Kody by sending anonymous usage data",
 					},
 					{ key: "separator", label: "", type: "separator", value: "" },
-					{ key: "version", label: "", type: "readonly", value: `Cline v${CLI_VERSION}` },
+					{ key: "version", label: "", type: "readonly", value: `Kody v${CLI_VERSION}` },
 				]
 
 			case "account":
@@ -668,7 +668,7 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 				}
 				// If not logged in, show login option
 				if (!accountEmail) {
-					return [{ key: "login", label: "Sign in with Cline", type: "action", value: "" }]
+					return [{ key: "login", label: "Sign in with Kody", type: "action", value: "" }]
 				}
 				// Logged in - show account info
 				const accountItems: ListItem[] = [
@@ -777,11 +777,11 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 		if (item.type === "action") {
 			// Action items trigger their handler directly
 			if (item.key === "login") {
-				handleClineLogin()
+				handleKodyLogin()
 				return
 			}
 			if (item.key === "logout") {
-				handleClineLogout()
+				handleKodyLogout()
 				return
 			}
 			if (item.key === "viewAccount") {
@@ -809,8 +809,8 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 			// For model ID fields, check if we should use the model picker
 			if ((item.key === "actModelId" || item.key === "planModelId") && hasModelPicker(provider)) {
 				setPickingModelKey(item.key as "actModelId" | "planModelId")
-				// For Cline provider, show featured models first
-				if (provider === "cline") {
+				// For Kody provider, show featured models first
+				if (provider === "kody") {
 					setFeaturedModelIndex(0)
 					setIsPickingFeaturedModel(true)
 				} else {
@@ -940,8 +940,8 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 		stateManager,
 		autoApproveSettings,
 		toggleFeature,
-		handleClineLogin,
-		handleClineLogout,
+		handleKodyLogin,
+		handleKodyLogout,
 		accountOrganizations,
 		separateModels,
 		actReasoningEffort,
@@ -1009,13 +1009,13 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 					: planProvider
 				: actProvider || planProvider
 			if (!providerForSelection) return
-			// Use provider-specific model ID keys (e.g., cline uses actModeOpenRouterModelId)
+			// Use provider-specific model ID keys (e.g., kody uses actModeOpenRouterModelId)
 			const actKey = actProvider ? getProviderModelIdKey(actProvider, "act") : null
 			const planKey = planProvider ? getProviderModelIdKey(planProvider, "plan") : null
 
-			// For cline/openrouter providers, also set model info (like webview does)
+			// For kody/openrouter providers, also set model info (like webview does)
 			let modelInfo: ModelInfo | undefined
-			if (providerForSelection === "cline" || providerForSelection === "openrouter") {
+			if (providerForSelection === "kody" || providerForSelection === "openrouter") {
 				const openRouterModels = await controller?.readOpenRouterModels()
 				modelInfo = openRouterModels?.[modelId]
 			}
@@ -1102,19 +1102,19 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 
 	const handleProviderSelect = useCallback(
 		async (providerId: string) => {
-			// Special handling for Cline - uses OAuth (but skip if already logged in)
-			if (providerId === "cline") {
+			// Special handling for Kody - uses OAuth (but skip if already logged in)
+			if (providerId === "kody") {
 				setIsPickingProvider(false)
 				// Check if already logged in
 				const authInfo = AuthService.getInstance(controller).getInfo()
 				if (authInfo?.user?.email) {
 					// Already logged in - just set the provider
-					await applyProviderConfig({ providerId: "cline", controller })
-					setProvider("cline")
+					await applyProviderConfig({ providerId: "kody", controller })
+					setProvider("kody")
 					refreshModelIds()
 				} else {
 					// Not logged in - trigger OAuth
-					handleClineLogin()
+					handleKodyLogin()
 				}
 				return
 			}
@@ -1170,7 +1170,7 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 				setIsPickingProvider(false)
 			}
 		},
-		[stateManager, startCodexAuth, handleClineLogin, startOcaAuth, isOcaAuthenticated, controller, refreshModelIds],
+		[stateManager, startCodexAuth, handleKodyLogin, startOcaAuth, isOcaAuthenticated, controller, refreshModelIds],
 	)
 
 	// Handle API key submission after provider selection
@@ -1213,7 +1213,7 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 		switch (item.key) {
 			case "actModelId":
 			case "planModelId": {
-				// Use provider-specific model ID keys (e.g., cline uses actModeOpenRouterModelId)
+				// Use provider-specific model ID keys (e.g., kody uses actModeOpenRouterModelId)
 				const apiConfig = stateManager.getApiConfiguration()
 				const actProvider = apiConfig.actModeApiProvider
 				const planProvider = apiConfig.planModeApiProvider || actProvider
@@ -1292,7 +1292,7 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 				return
 			}
 
-			// Featured model picker mode (Cline provider)
+			// Featured model picker mode (Kody provider)
 			if (isPickingFeaturedModel) {
 				const maxIndex = getFeaturedModelMaxIndex(featuredModels)
 
@@ -1368,10 +1368,10 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 				return
 			}
 
-			// Cline OAuth waiting mode - escape to cancel
-			if (isWaitingForClineAuth) {
+			// Kody OAuth waiting mode - escape to cancel
+			if (isWaitingForKodyAuth) {
 				if (key.escape) {
-					setIsWaitingForClineAuth(false)
+					setIsWaitingForKodyAuth(false)
 				}
 				return
 			}
@@ -1591,14 +1591,14 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 			)
 		}
 
-		if (isWaitingForClineAuth) {
+		if (isWaitingForKodyAuth) {
 			return (
 				<Box flexDirection="column">
 					<Box>
 						<Text color={COLORS.primaryBlue}>
 							<Spinner type="dots" />
 						</Text>
-						<Text color="white"> Waiting for Cline sign-in...</Text>
+						<Text color="white"> Waiting for Kody sign-in...</Text>
 					</Box>
 					<Box marginTop={1}>
 						<Text color="gray">Complete sign-in in your browser.</Text>
@@ -1672,7 +1672,7 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 		if (currentTab === "account" && !accountEmail && !isAccountLoading) {
 			return (
 				<Box flexDirection="column">
-					<Text color="white">Sign in to access Cline features:</Text>
+					<Text color="white">Sign in to access Kody features:</Text>
 					<Box flexDirection="column" marginTop={1}>
 						<Text color="gray"> - Free access to frontier AI models</Text>
 						<Text color="gray"> - Built-in web search capabilities</Text>
@@ -1817,7 +1817,7 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 		isWaitingForCodexAuth ||
 		!!codexAuthError ||
 		isPickingOrganization ||
-		isWaitingForClineAuth ||
+		isWaitingForKodyAuth ||
 		isShowingOcaEmployeeCheck ||
 		isWaitingForOcaAuth ||
 		isBedrockCustomFlow ||

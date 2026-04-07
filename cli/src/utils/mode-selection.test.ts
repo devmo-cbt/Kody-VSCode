@@ -52,7 +52,7 @@ describe("selectOutputMode", () => {
 	})
 
 	describe("piped stdin", () => {
-		it("should use plain text mode when stdin was piped (echo x | cline)", () => {
+		it("should use plain text mode when stdin was piped (echo x | kody)", () => {
 			const result = selectOutputMode({
 				stdoutIsTTY: true,
 				stdinIsTTY: false, // piped stdin is not a TTY
@@ -62,7 +62,7 @@ describe("selectOutputMode", () => {
 			expect(result.reason).toBe("piped_stdin")
 		})
 
-		it("should use plain text mode when stdin was piped but empty (echo '' | cline 'prompt')", () => {
+		it("should use plain text mode when stdin was piped but empty (echo '' | kody 'prompt')", () => {
 			const result = selectOutputMode({
 				stdoutIsTTY: true,
 				stdinIsTTY: false,
@@ -75,7 +75,7 @@ describe("selectOutputMode", () => {
 
 	describe("stdin redirected (< /dev/null)", () => {
 		it("should use plain text mode when stdin is redirected from /dev/null", () => {
-			// cline "prompt" < /dev/null
+			// kody "prompt" < /dev/null
 			// stdin is not a TTY, but also not a FIFO/file, so stdinWasPiped=false
 			const result = selectOutputMode({
 				stdoutIsTTY: true,
@@ -89,7 +89,7 @@ describe("selectOutputMode", () => {
 
 	describe("stdout redirected", () => {
 		it("should use plain text mode when stdout is redirected to file", () => {
-			// cline "prompt" > output.txt
+			// kody "prompt" > output.txt
 			const result = selectOutputMode({
 				stdoutIsTTY: false,
 				stdinIsTTY: true,
@@ -100,7 +100,7 @@ describe("selectOutputMode", () => {
 		})
 
 		it("should use plain text mode when stdout is piped", () => {
-			// cline "prompt" | grep something
+			// kody "prompt" | grep something
 			const result = selectOutputMode({
 				stdoutIsTTY: false,
 				stdinIsTTY: true,
@@ -136,7 +136,7 @@ describe("selectOutputMode", () => {
 	})
 
 	describe("real-world scenarios", () => {
-		it("cline (no args, interactive terminal)", () => {
+		it("kody (no args, interactive terminal)", () => {
 			const result = selectOutputMode({
 				stdoutIsTTY: true,
 				stdinIsTTY: true,
@@ -145,7 +145,7 @@ describe("selectOutputMode", () => {
 			expect(result.usePlainTextMode).toBe(false)
 		})
 
-		it('cline "prompt" (prompt arg, interactive terminal)', () => {
+		it('kody "prompt" (prompt arg, interactive terminal)', () => {
 			const result = selectOutputMode({
 				stdoutIsTTY: true,
 				stdinIsTTY: true,
@@ -154,7 +154,7 @@ describe("selectOutputMode", () => {
 			expect(result.usePlainTextMode).toBe(false)
 		})
 
-		it('cat file | cline "explain"', () => {
+		it('cat file | kody "explain"', () => {
 			const result = selectOutputMode({
 				stdoutIsTTY: true,
 				stdinIsTTY: false,
@@ -163,7 +163,7 @@ describe("selectOutputMode", () => {
 			expect(result.usePlainTextMode).toBe(true)
 		})
 
-		it('cline --yolo "prompt"', () => {
+		it('kody --yolo "prompt"', () => {
 			const result = selectOutputMode({
 				stdoutIsTTY: true,
 				stdinIsTTY: true,
@@ -173,7 +173,7 @@ describe("selectOutputMode", () => {
 			expect(result.usePlainTextMode).toBe(true)
 		})
 
-		it('cline "prompt" < /dev/null', () => {
+		it('kody "prompt" < /dev/null', () => {
 			const result = selectOutputMode({
 				stdoutIsTTY: true,
 				stdinIsTTY: false,
@@ -182,7 +182,7 @@ describe("selectOutputMode", () => {
 			expect(result.usePlainTextMode).toBe(true)
 		})
 
-		it('cline "prompt" > output.log', () => {
+		it('kody "prompt" > output.log', () => {
 			const result = selectOutputMode({
 				stdoutIsTTY: false,
 				stdinIsTTY: true,

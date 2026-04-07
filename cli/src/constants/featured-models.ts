@@ -1,8 +1,8 @@
 /**
- * Featured models shown in the Cline model picker during onboarding
- * These are curated models that work well with Cline
+ * Featured models shown in the Kody model picker during onboarding
+ * These are curated models that work well with Kody
  */
-import { CLINE_RECOMMENDED_MODELS_FALLBACK } from "@shared/cline/recommended-models"
+import { CLINE_RECOMMENDED_MODELS_FALLBACK } from "@shared/kody/recommended-models"
 
 export interface FeaturedModel {
 	id: string

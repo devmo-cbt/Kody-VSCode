@@ -1,4 +1,4 @@
-import type { ClineAskUseSubagents, ClineMessage, ClineSaySubagentStatus } from "@shared/ExtensionMessage"
+import type { KodyAskUseSubagents, KodyMessage, KodySaySubagentStatus } from "@shared/ExtensionMessage"
 import { Box, Text } from "ink"
 import Spinner from "ink-spinner"
 import React from "react"
@@ -7,7 +7,7 @@ import { useTerminalSize } from "../hooks/useTerminalSize"
 import { jsonParseSafe } from "../utils/parser"
 
 interface SubagentMessageProps {
-	message: ClineMessage
+	message: KodyMessage
 	isStreaming?: boolean
 	mode?: "act" | "plan"
 }
@@ -175,7 +175,7 @@ export const SubagentMessage: React.FC<SubagentMessageProps> = ({ message, mode,
 
 	if ((type === "ask" && ask === "use_subagents") || say === "use_subagents") {
 		const parsed = text
-			? jsonParseSafe<ClineAskUseSubagents>(text, {
+			? jsonParseSafe<KodyAskUseSubagents>(text, {
 					prompts: [],
 				})
 			: { prompts: [] }
@@ -185,7 +185,7 @@ export const SubagentMessage: React.FC<SubagentMessageProps> = ({ message, mode,
 			return (
 				<Box flexDirection="column" marginBottom={1} width="100%">
 					<DotRow color={toolColor}>
-						<Text color={toolColor}>Cline wants to run subagents:</Text>
+						<Text color={toolColor}>Kody wants to run subagents:</Text>
 					</DotRow>
 				</Box>
 			)
@@ -195,7 +195,7 @@ export const SubagentMessage: React.FC<SubagentMessageProps> = ({ message, mode,
 		return (
 			<Box flexDirection="column" marginBottom={1} width="100%">
 				<DotRow color={toolColor} flashing={partial === true && isStreaming}>
-					<Text color={toolColor}>{singular ? "Cline wants to run a subagent:" : "Cline wants to run subagents:"}</Text>
+					<Text color={toolColor}>{singular ? "Kody wants to run a subagent:" : "Kody wants to run subagents:"}</Text>
 				</DotRow>
 				<Box flexDirection="column" marginLeft={2} width="100%">
 					{prompts.map((prompt, index) => {
@@ -227,7 +227,7 @@ export const SubagentMessage: React.FC<SubagentMessageProps> = ({ message, mode,
 	}
 
 	if (say === "subagent" && text) {
-		const parsed = jsonParseSafe<ClineSaySubagentStatus>(text, {
+		const parsed = jsonParseSafe<KodySaySubagentStatus>(text, {
 			status: "running",
 			total: 0,
 			completed: 0,
@@ -251,7 +251,7 @@ export const SubagentMessage: React.FC<SubagentMessageProps> = ({ message, mode,
 			<Box flexDirection="column" marginBottom={1} width="100%">
 				<DotRow color={toolColor} flashing={partial === true && isStreaming}>
 					<Text color={toolColor}>
-						{items.length === 1 ? "Cline is running a subagent:" : "Cline is running subagents:"}
+						{items.length === 1 ? "Kody is running a subagent:" : "Kody is running subagents:"}
 					</Text>
 				</DotRow>
 				<Box flexDirection="column" marginLeft={2} width="100%">

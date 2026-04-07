@@ -2,23 +2,23 @@
  * Permission handling for ACP integration.
  *
  * This module handles the translation between ACP permission requests/responses
- * and Cline's internal permission system. It maps ClineAsk types to appropriate
- * ACP permission options and translates user responses back to Cline's format.
+ * and Kody's internal permission system. It maps KodyAsk types to appropriate
+ * ACP permission options and translates user responses back to Kody's format.
  *
  * @module acp/permissionHandler
  */
 
 import type * as acp from "@agentclientprotocol/sdk"
-import type { ClineAsk } from "@shared/ExtensionMessage"
-import type { ClineAskResponse } from "@shared/WebviewMessage"
+import type { KodyAsk } from "@shared/ExtensionMessage"
+import type { KodyAskResponse } from "@shared/WebviewMessage"
 import { Logger } from "@/shared/services/Logger.js"
-import type { AcpSessionState, ClinePermissionOption } from "./types.js"
+import type { AcpSessionState, KodyPermissionOption } from "./types.js"
 
 /**
  * Standard permission options for operations that support "always allow".
  * Used for commands, tools, and MCP server operations.
  */
-const STANDARD_PERMISSION_OPTIONS: ClinePermissionOption[] = [
+const STANDARD_PERMISSION_OPTIONS: KodyPermissionOption[] = [
 	{ kind: "allow_once", optionId: "allow_once", name: "Allow Once" },
 	{ kind: "allow_always", optionId: "allow_always", name: "Always Allow" },
 	{ kind: "reject_once", optionId: "reject_once", name: "Reject" },
@@ -28,15 +28,15 @@ const STANDARD_PERMISSION_OPTIONS: ClinePermissionOption[] = [
  * Permission options for operations that don't support "always allow".
  * Used for browser actions and other one-time operations.
  */
-const RESTRICTED_PERMISSION_OPTIONS: ClinePermissionOption[] = [
+const RESTRICTED_PERMISSION_OPTIONS: KodyPermissionOption[] = [
 	{ kind: "allow_once", optionId: "allow_once", name: "Allow Once" },
 	{ kind: "reject_once", optionId: "reject_once", name: "Reject" },
 ]
 
 /**
- * Mapping of ClineAsk types to their permission option sets.
+ * Mapping of KodyAsk types to their permission option sets.
  */
-const ASK_TYPE_PERMISSION_MAP: Partial<Record<ClineAsk, ClinePermissionOption[]>> = {
+const ASK_TYPE_PERMISSION_MAP: Partial<Record<KodyAsk, KodyPermissionOption[]>> = {
 	// Commands support "always allow" for auto-approval
 	command: STANDARD_PERMISSION_OPTIONS,
 
@@ -54,10 +54,10 @@ const ASK_TYPE_PERMISSION_MAP: Partial<Record<ClineAsk, ClinePermissionOption[]>
 }
 
 /**
- * ClineAsk types that require permission handling.
+ * KodyAsk types that require permission handling.
  * Other ask types (like followup, plan_mode_respond) don't need permission UI.
  */
-const PERMISSION_REQUIRING_ASK_TYPES: Set<ClineAsk> = new Set([
+const PERMISSION_REQUIRING_ASK_TYPES: Set<KodyAsk> = new Set([
 	"command",
 	"tool",
 	"browser_action_launch",
@@ -69,8 +69,8 @@ const PERMISSION_REQUIRING_ASK_TYPES: Set<ClineAsk> = new Set([
  * Result of handling a permission response.
  */
 export interface PermissionHandlerResult {
-	/** Cline's internal response type */
-	response: ClineAskResponse
+	/** Kody's internal response type */
+	response: KodyAskResponse
 	/** Optional text to pass with the response */
 	text?: string
 	/** Whether "always allow" was selected (for auto-approval tracking) */
@@ -80,22 +80,22 @@ export interface PermissionHandlerResult {
 }
 
 /**
- * Check if a ClineAsk type requires permission handling.
+ * Check if a KodyAsk type requires permission handling.
  *
- * @param askType - The ClineAsk type to check
+ * @param askType - The KodyAsk type to check
  * @returns True if the ask type requires permission UI
  */
-export function requiresPermission(askType: ClineAsk): boolean {
+export function requiresPermission(askType: KodyAsk): boolean {
 	return PERMISSION_REQUIRING_ASK_TYPES.has(askType)
 }
 
 /**
- * Get the appropriate permission options for a ClineAsk type.
+ * Get the appropriate permission options for a KodyAsk type.
  *
- * @param askType - The ClineAsk type
+ * @param askType - The KodyAsk type
  * @returns Array of permission options, or undefined if the ask type doesn't require permission
  */
-export function getPermissionOptionsForAskType(askType: ClineAsk): acp.PermissionOption[] | undefined {
+export function getPermissionOptionsForAskType(askType: KodyAsk): acp.PermissionOption[] | undefined {
 	const options = ASK_TYPE_PERMISSION_MAP[askType]
 	if (!options) {
 		return undefined
@@ -110,13 +110,13 @@ export function getPermissionOptionsForAskType(askType: ClineAsk): acp.Permissio
 }
 
 /**
- * Handle an ACP permission response and translate it to Cline's format.
+ * Handle an ACP permission response and translate it to Kody's format.
  *
  * @param response - The ACP permission response from the client
- * @param askType - The original ClineAsk type that triggered the permission request
- * @returns The translated result for Cline's handleWebviewAskResponse
+ * @param askType - The original KodyAsk type that triggered the permission request
+ * @returns The translated result for Kody's handleWebviewAskResponse
  */
-export function handlePermissionResponse(response: acp.RequestPermissionResponse, askType: ClineAsk): PermissionHandlerResult {
+export function handlePermissionResponse(response: acp.RequestPermissionResponse, askType: KodyAsk): PermissionHandlerResult {
 	// Check if cancelled
 	if (response.outcome.outcome === "cancelled") {
 		return {
@@ -128,7 +128,7 @@ export function handlePermissionResponse(response: acp.RequestPermissionResponse
 	// Get the selected option ID
 	const optionId = response.outcome.optionId
 
-	// Translate the option to Cline's response format
+	// Translate the option to Kody's response format
 	switch (optionId) {
 		case "allow_once":
 			return {
@@ -162,12 +162,12 @@ export function handlePermissionResponse(response: acp.RequestPermissionResponse
  * Create a permission request for an ACP tool call.
  *
  * @param toolCall - The ACP tool call that needs permission
- * @param askType - The Cline ask type
+ * @param askType - The Kody ask type
  * @returns The permission request options, or null if no permission needed
  */
 export function createPermissionRequest(
 	toolCall: acp.ToolCall,
-	askType: ClineAsk,
+	askType: KodyAsk,
 ): { toolCall: acp.ToolCall; options: acp.PermissionOption[] } | null {
 	const options = getPermissionOptionsForAskType(askType)
 	if (!options) {
@@ -197,10 +197,10 @@ export class AutoApprovalTracker {
 	/**
 	 * Record an "always allow" decision for a permission request.
 	 *
-	 * @param askType - The Cline ask type that was auto-approved
+	 * @param askType - The Kody ask type that was auto-approved
 	 * @param identifier - The identifier for the operation (command, tool name, etc.)
 	 */
-	recordAlwaysAllow(askType: ClineAsk, identifier: string): void {
+	recordAlwaysAllow(askType: KodyAsk, identifier: string): void {
 		switch (askType) {
 			case "command":
 				// Store the first word of the command as the key
@@ -221,11 +221,11 @@ export class AutoApprovalTracker {
 	/**
 	 * Check if an operation has been auto-approved.
 	 *
-	 * @param askType - The Cline ask type
+	 * @param askType - The Kody ask type
 	 * @param identifier - The identifier for the operation
 	 * @returns True if the operation was previously auto-approved
 	 */
-	isAutoApproved(askType: ClineAsk, identifier: string): boolean {
+	isAutoApproved(askType: KodyAsk, identifier: string): boolean {
 		switch (askType) {
 			case "command":
 				const commandPrefix = identifier.split(" ")[0]
@@ -259,12 +259,12 @@ export class AutoApprovalTracker {
  * 1. Checks if the operation is already auto-approved
  * 2. If not, requests permission from the ACP client
  * 3. Tracks "always allow" decisions
- * 4. Returns the translated result for Cline
+ * 4. Returns the translated result for Kody
  *
  * @param requestPermission - Function to request permission from the ACP client
  * @param sessionId - The session ID
  * @param toolCall - The tool call requiring permission
- * @param askType - The Cline ask type
+ * @param askType - The Kody ask type
  * @param identifier - Identifier for auto-approval tracking
  * @param autoApprovalTracker - The auto-approval tracker
  * @returns The permission handler result
@@ -277,7 +277,7 @@ export async function processPermissionRequest(
 	) => Promise<acp.RequestPermissionResponse>,
 	sessionId: string,
 	toolCall: acp.ToolCall,
-	askType: ClineAsk,
+	askType: KodyAsk,
 	identifier: string,
 	autoApprovalTracker?: AutoApprovalTracker,
 ): Promise<PermissionHandlerResult> {
@@ -316,10 +316,10 @@ export async function processPermissionRequest(
  * Get the identifier for auto-approval tracking from a tool call.
  *
  * @param toolCall - The ACP tool call
- * @param askType - The Cline ask type
+ * @param askType - The Kody ask type
  * @returns The identifier string for auto-approval tracking
  */
-export function getAutoApprovalIdentifier(toolCall: acp.ToolCall, askType: ClineAsk): string {
+export function getAutoApprovalIdentifier(toolCall: acp.ToolCall, askType: KodyAsk): string {
 	const rawInput = toolCall.rawInput as Record<string, unknown> | undefined
 
 	switch (askType) {

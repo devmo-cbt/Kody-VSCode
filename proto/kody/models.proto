@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package kody;
 
-import "kody/common.proto";
 import "google/protobuf/field_mask.proto";
+import "kody/common.proto";
 
 option go_package = "github.com/kody/grpc-go/kody";
 option java_multiple_files = true;

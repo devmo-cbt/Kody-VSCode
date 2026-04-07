@@ -8,17 +8,17 @@
  */
 
 import { EventEmitter } from "events"
-import type { ClineSessionEvents } from "./public-types.js"
+import type { KodySessionEvents } from "./public-types.js"
 
 /**
- * Type-safe EventEmitter for ClineAgent session events.
+ * Type-safe EventEmitter for KodyAgent session events.
  *
  * Each session has its own emitter instance, allowing consumers to
  * subscribe to events for specific sessions without filtering.
  *
  * @example
  * ```typescript
- * const agent = new ClineAgent({ version: "1.0.0" })
+ * const agent = new KodyAgent({ version: "1.0.0" })
  * const session = await agent.newSession({ cwd: "/path/to/project" })
  *
  * // Subscribe to session events
@@ -31,7 +31,7 @@ import type { ClineSessionEvents } from "./public-types.js"
  * })
  * ```
  */
-export class ClineSessionEmitter {
+export class KodySessionEmitter {
 	private readonly emitter: EventEmitter
 
 	constructor() {
@@ -47,7 +47,7 @@ export class ClineSessionEmitter {
 	 * @param listener - The callback function to invoke when the event is emitted
 	 * @returns This emitter instance for chaining
 	 */
-	on<K extends keyof ClineSessionEvents>(event: K, listener: ClineSessionEvents[K]): this {
+	on<K extends keyof KodySessionEvents>(event: K, listener: KodySessionEvents[K]): this {
 		this.emitter.on(event, listener as (...args: unknown[]) => void)
 		return this
 	}
@@ -59,7 +59,7 @@ export class ClineSessionEmitter {
 	 * @param listener - The callback function to invoke when the event is emitted
 	 * @returns This emitter instance for chaining
 	 */
-	once<K extends keyof ClineSessionEvents>(event: K, listener: ClineSessionEvents[K]): this {
+	once<K extends keyof KodySessionEvents>(event: K, listener: KodySessionEvents[K]): this {
 		this.emitter.once(event, listener as (...args: unknown[]) => void)
 		return this
 	}
@@ -71,7 +71,7 @@ export class ClineSessionEmitter {
 	 * @param listener - The callback function to remove
 	 * @returns This emitter instance for chaining
 	 */
-	off<K extends keyof ClineSessionEvents>(event: K, listener: ClineSessionEvents[K]): this {
+	off<K extends keyof KodySessionEvents>(event: K, listener: KodySessionEvents[K]): this {
 		this.emitter.off(event, listener as (...args: unknown[]) => void)
 		return this
 	}
@@ -83,7 +83,7 @@ export class ClineSessionEmitter {
 	 * @param args - The arguments to pass to the event listeners
 	 * @returns True if the event had listeners, false otherwise
 	 */
-	emit<K extends keyof ClineSessionEvents>(event: K, ...args: Parameters<ClineSessionEvents[K]>): boolean {
+	emit<K extends keyof KodySessionEvents>(event: K, ...args: Parameters<KodySessionEvents[K]>): boolean {
 		return this.emitter.emit(event, ...args)
 	}
 
@@ -93,7 +93,7 @@ export class ClineSessionEmitter {
 	 * @param event - Optional event name to remove listeners for
 	 * @returns This emitter instance for chaining
 	 */
-	removeAllListeners<K extends keyof ClineSessionEvents>(event?: K): this {
+	removeAllListeners<K extends keyof KodySessionEvents>(event?: K): this {
 		if (event) {
 			this.emitter.removeAllListeners(event)
 		} else {
@@ -108,7 +108,7 @@ export class ClineSessionEmitter {
 	 * @param event - The event name to count listeners for
 	 * @returns The number of listeners
 	 */
-	listenerCount<K extends keyof ClineSessionEvents>(event: K): number {
+	listenerCount<K extends keyof KodySessionEvents>(event: K): number {
 		return this.emitter.listenerCount(event)
 	}
 }

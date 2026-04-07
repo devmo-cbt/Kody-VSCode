@@ -1,4 +1,4 @@
-import type { ClineMessage, ExtensionState } from "@shared/ExtensionMessage"
+import type { ExtensionState, KodyMessage } from "@shared/ExtensionMessage"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { colorize, formatMessage, formatState, formatTimestamp, Spinner, separator, style, taskHeader } from "./display"
 
@@ -74,14 +74,14 @@ describe("display", () => {
 	})
 
 	describe("formatMessage", () => {
-		const createMessage = (overrides: Partial<ClineMessage>): ClineMessage =>
+		const createMessage = (overrides: Partial<KodyMessage>): KodyMessage =>
 			({
 				ts: Date.now(),
 				type: "say",
 				say: "text",
 				text: "test message",
 				...overrides,
-			}) as ClineMessage
+			}) as KodyMessage
 
 		describe("say messages", () => {
 			it("should format text message", () => {
@@ -325,7 +325,7 @@ describe("display", () => {
 	describe("formatState", () => {
 		it("should format state with messages", () => {
 			const state: Partial<ExtensionState> = {
-				clineMessages: [{ ts: Date.now(), type: "say", say: "text", text: "Hello" } as ClineMessage],
+				kodyMessages: [{ ts: Date.now(), type: "say", say: "text", text: "Hello" } as KodyMessage],
 			}
 			const result = formatState(state as ExtensionState)
 			expect(result).toContain("Hello")
@@ -342,7 +342,7 @@ describe("display", () => {
 					modelId: "gpt-4",
 					totalCost: 0.0025,
 				},
-				clineMessages: [],
+				kodyMessages: [],
 			}
 			const result = formatState(state as ExtensionState)
 			expect(result).toContain("Task: task-1")
@@ -350,7 +350,7 @@ describe("display", () => {
 
 		it("should handle empty messages array", () => {
 			const state: Partial<ExtensionState> = {
-				clineMessages: [],
+				kodyMessages: [],
 			}
 			const result = formatState(state as ExtensionState)
 			expect(result).toBe("")

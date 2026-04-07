@@ -1,4 +1,4 @@
-import type { SlashCommandInfo } from "@shared/proto/cline/slash"
+import type { SlashCommandInfo } from "@shared/proto/kody/slash"
 import { describe, expect, it } from "vitest"
 import { filterCommands, getStandaloneSlashCommandToExecute } from "./slash-commands"
 

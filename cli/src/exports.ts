@@ -1,22 +1,22 @@
 /**
- * Cline Library Exports
+ * Kody Library Exports
  *
- * This file exports the public API for programmatic use of Cline.
- * Use these classes and types to embed Cline into your applications.
+ * This file exports the public API for programmatic use of Kody.
+ * Use these classes and types to embed Kody into your applications.
  *
  * @example
  * ```typescript
- * import { ClineAgent } from "cline"
+ * import { KodyAgent } from "kody"
  *
- * const agent = new ClineAgent()
+ * const agent = new KodyAgent()
  * await agent.initialize({ clientCapabilities: {} })
  * const session = await agent.newSession({ cwd: process.cwd() })
  * ```
- * @module cline
+ * @module kody
  */
 
-export { ClineAgent } from "./agent/ClineAgent.js"
-export { ClineSessionEmitter } from "./agent/ClineSessionEmitter.js"
+export { KodyAgent } from "./agent/KodyAgent.js"
+export { KodySessionEmitter } from "./agent/KodySessionEmitter.js"
 export type {
 	AcpAgentOptions,
 	AcpSessionState,
@@ -26,16 +26,16 @@ export type {
 	AudioContent,
 	CancelNotification,
 	ClientCapabilities,
-	ClineAcpSession,
-	ClineAgentCapabilities,
-	ClineAgentInfo,
-	ClineAgentOptions,
-	ClinePermissionOption,
-	ClineSessionEvents,
 	ContentBlock,
 	ImageContent,
 	InitializeRequest,
 	InitializeResponse,
+	KodyAcpSession,
+	KodyAgentCapabilities,
+	KodyAgentInfo,
+	KodyAgentOptions,
+	KodyPermissionOption,
+	KodySessionEvents,
 	LoadSessionRequest,
 	LoadSessionResponse,
 	McpServer,

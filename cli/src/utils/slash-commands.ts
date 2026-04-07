@@ -3,7 +3,7 @@
  * Handles detection, filtering, and insertion of slash commands
  */
 
-import type { SlashCommandInfo } from "@shared/proto/cline/slash"
+import type { SlashCommandInfo } from "@shared/proto/kody/slash"
 import { CLI_ONLY_COMMANDS } from "@shared/slashCommands"
 import { fuzzyFilter } from "./fuzzy-search"
 

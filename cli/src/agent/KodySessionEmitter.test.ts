@@ -1,16 +1,16 @@
 /**
- * Tests for ClineSessionEmitter - Typed EventEmitter for per-session ACP events.
+ * Tests for KodySessionEmitter - Typed EventEmitter for per-session ACP events.
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import { ClineSessionEmitter } from "./ClineSessionEmitter.js"
+import { KodySessionEmitter } from "./KodySessionEmitter.js"
 import type { SessionUpdatePayload } from "./types.js"
 
-describe("ClineSessionEmitter", () => {
-	let emitter: ClineSessionEmitter
+describe("KodySessionEmitter", () => {
+	let emitter: KodySessionEmitter
 
 	beforeEach(() => {
-		emitter = new ClineSessionEmitter()
+		emitter = new KodySessionEmitter()
 	})
 
 	describe("on/emit", () => {

@@ -10,9 +10,9 @@ import { printError, printInfo, printWarning } from "./utils/display"
 import { CLINE_CLI_DIR } from "./utils/path"
 
 export { URI } from "vscode-uri"
-export { ClineFileStorage } from "@/shared/storage"
+export { KodyFileStorage } from "@/shared/storage"
 
-export const CLI_LOG_FILE = path.join(CLINE_CLI_DIR.log, "cline-cli.1.log")
+export const CLI_LOG_FILE = path.join(CLINE_CLI_DIR.log, "kody-cli.1.log")
 
 /**
  * Safely read and parse a JSON file, returning a default value on failure

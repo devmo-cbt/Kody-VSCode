@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { refreshClineRecommendedModels } from "@/core/controller/models/refreshClineRecommendedModels"
+import { refreshKodyRecommendedModels } from "@/core/controller/models/refreshKodyRecommendedModels"
 import {
 	type FeaturedModel,
 	getAllFeaturedModels,
@@ -7,14 +7,14 @@ import {
 	withFeaturedModelFallback,
 } from "../constants/featured-models"
 
-export function useClineFeaturedModels(): FeaturedModel[] {
+export function useKodyFeaturedModels(): FeaturedModel[] {
 	const [featuredModels, setFeaturedModels] = useState<FeaturedModel[]>(() => getAllFeaturedModels())
 
 	useEffect(() => {
 		let cancelled = false
 		void (async () => {
 			try {
-				const recommendedModels = await refreshClineRecommendedModels()
+				const recommendedModels = await refreshKodyRecommendedModels()
 				const mappedModels = mapRecommendedModelsToFeaturedModels(recommendedModels)
 				const modelsWithFallback = withFeaturedModelFallback(mappedModels)
 				if (!cancelled) {

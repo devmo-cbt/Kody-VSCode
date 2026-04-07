@@ -1,33 +1,33 @@
 /**
- * AcpAgent - Thin wrapper that bridges stdio connection to ClineAgent.
+ * AcpAgent - Thin wrapper that bridges stdio connection to KodyAgent.
  *
- * This class wraps the ClineAgent and connects it to an ACP AgentSideConnection
+ * This class wraps the KodyAgent and connects it to an ACP AgentSideConnection
  * for stdio-based communication. It:
  * - Wires up the permission handler to call connection.requestPermission()
- * - Subscribes to ClineAgent session events and forwards them to connection.sessionUpdate()
- * - Delegates all acp.Agent methods to the internal ClineAgent
+ * - Subscribes to KodyAgent session events and forwards them to connection.sessionUpdate()
+ * - Delegates all acp.Agent methods to the internal KodyAgent
  *
- * For programmatic usage without stdio, use ClineAgent directly.
+ * For programmatic usage without stdio, use KodyAgent directly.
  *
  * @module acp
  */
 
 import type * as acp from "@agentclientprotocol/sdk"
 import { Logger } from "@/shared/services/Logger.js"
-import { ClineAgent } from "../agent/ClineAgent.js"
+import { KodyAgent } from "../agent/KodyAgent.js"
 import { type AcpAgentOptions, type SessionUpdateType } from "../agent/types.js"
 
 /**
- * ACP Agent wrapper that bridges stdio connection to ClineAgent.
+ * ACP Agent wrapper that bridges stdio connection to KodyAgent.
  *
  * This is the class used by runAcpMode() for stdio-based ACP communication.
- * It creates an internal ClineAgent and wires up the connection for:
+ * It creates an internal KodyAgent and wires up the connection for:
  * - Permission requests (via connection.requestPermission)
  * - Session updates (via connection.sessionUpdate)
  */
 export class AcpAgent implements acp.Agent {
 	private readonly connection: acp.AgentSideConnection
-	private readonly clineAgent: ClineAgent
+	private readonly kodyAgent: KodyAgent
 
 	/** Track which sessions we've subscribed to for event forwarding */
 	private readonly subscribedSessions: Set<string> = new Set()
@@ -35,11 +35,11 @@ export class AcpAgent implements acp.Agent {
 	constructor(connection: acp.AgentSideConnection, options: AcpAgentOptions) {
 		this.connection = connection
 
-		// Create the internal ClineAgent
-		this.clineAgent = new ClineAgent(options)
+		// Create the internal KodyAgent
+		this.kodyAgent = new KodyAgent(options)
 
 		// Wire up the permission handler to use the connection
-		this.clineAgent.setPermissionHandler(async (request) => {
+		this.kodyAgent.setPermissionHandler(async (request) => {
 			try {
 				Logger.debug("[AcpAgent] Forwarding permission request to connection")
 				return await this.connection.requestPermission({
@@ -62,7 +62,7 @@ export class AcpAgent implements acp.Agent {
 			return
 		}
 
-		const emitter = this.clineAgent.emitterForSession(sessionId)
+		const emitter = this.kodyAgent.emitterForSession(sessionId)
 
 		// Forward session update by adding the sessionUpdate discriminator
 		const forwardSessionUpdate = <K extends SessionUpdateType>(eventName: K) => {
@@ -98,15 +98,15 @@ export class AcpAgent implements acp.Agent {
 	}
 
 	// ============================================================
-	// acp.Agent Interface Implementation - Delegate to ClineAgent
+	// acp.Agent Interface Implementation - Delegate to KodyAgent
 	// ============================================================
 
 	async initialize(params: acp.InitializeRequest): Promise<acp.InitializeResponse> {
-		return await this.clineAgent.initialize(params, this.connection)
+		return await this.kodyAgent.initialize(params, this.connection)
 	}
 
 	async newSession(params: acp.NewSessionRequest): Promise<acp.NewSessionResponse> {
-		const response = await this.clineAgent.newSession(params)
+		const response = await this.kodyAgent.newSession(params)
 		// Subscribe to events for this new session
 		this.subscribeToSessionEvents(response.sessionId)
 		return response
@@ -115,27 +115,27 @@ export class AcpAgent implements acp.Agent {
 	async prompt(params: acp.PromptRequest): Promise<acp.PromptResponse> {
 		// Ensure we're subscribed to this session's events
 		this.subscribeToSessionEvents(params.sessionId)
-		return this.clineAgent.prompt(params)
+		return this.kodyAgent.prompt(params)
 	}
 
 	async cancel(params: acp.CancelNotification): Promise<void> {
-		return this.clineAgent.cancel(params)
+		return this.kodyAgent.cancel(params)
 	}
 
 	async setSessionMode(params: acp.SetSessionModeRequest): Promise<acp.SetSessionModeResponse> {
-		return this.clineAgent.setSessionMode(params)
+		return this.kodyAgent.setSessionMode(params)
 	}
 
 	async unstable_setSessionModel(params: acp.SetSessionModelRequest): Promise<acp.SetSessionModelResponse> {
-		return this.clineAgent.unstable_setSessionModel(params)
+		return this.kodyAgent.unstable_setSessionModel(params)
 	}
 
 	async authenticate(params: acp.AuthenticateRequest): Promise<acp.AuthenticateResponse> {
-		return this.clineAgent.authenticate(params)
+		return this.kodyAgent.authenticate(params)
 	}
 
 	async shutdown(): Promise<void> {
 		this.subscribedSessions.clear()
-		return this.clineAgent.shutdown()
+		return this.kodyAgent.shutdown()
 	}
 }

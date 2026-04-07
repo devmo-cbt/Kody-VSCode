@@ -3,7 +3,7 @@ import os from "node:os"
 import path from "node:path"
 import { rgPath } from "@vscode/ripgrep"
 
-const data = process.env.CLINE_DATA_DIR ?? path.join(os.homedir(), ".cline", "data")
+const data = process.env.CLINE_DATA_DIR ?? path.join(os.homedir(), ".kody", "data")
 
 const log = process.env.CLINE_LOG_DIR ?? path.join(data, "logs")
 

@@ -2,13 +2,13 @@
  * Entry point for ACP (Agent Client Protocol) mode.
  *
  * When the CLI is invoked with `--acp`, this module sets up the ACP connection
- * and runs Cline as an ACP-compliant agent communicating over stdio.
+ * and runs Kody as an ACP-compliant agent communicating over stdio.
  *
  * This module exports:
- * - `ClineAgent` - Decoupled agent for programmatic use (no stdio dependency)
- * - `AcpAgent` - Thin wrapper that bridges stdio connection to ClineAgent
- * - `ClineSessionEmitter` - Typed EventEmitter for per-session events
- * - `runAcpMode` - Function to run Cline in stdio-based ACP mode
+ * - `KodyAgent` - Decoupled agent for programmatic use (no stdio dependency)
+ * - `AcpAgent` - Thin wrapper that bridges stdio connection to KodyAgent
+ * - `KodySessionEmitter` - Typed EventEmitter for per-session events
+ * - `runAcpMode` - Function to run Kody in stdio-based ACP mode
  *
  * @module acp
  */
@@ -19,13 +19,13 @@ import { AcpAgent } from "./AcpAgent.js"
 import { nodeToWebReadable, nodeToWebWritable } from "./streamUtils.js"
 
 // Re-export classes for programmatic use
-export { ClineAgent } from "../agent/ClineAgent.js"
-export { ClineSessionEmitter } from "../agent/ClineSessionEmitter.js"
+export { KodyAgent } from "../agent/KodyAgent.js"
+export { KodySessionEmitter } from "../agent/KodySessionEmitter.js"
 export type {
 	AcpAgentOptions,
 	AcpSessionState,
-	ClineAgentOptions,
-	ClineSessionEvents,
+	KodyAgentOptions,
+	KodySessionEvents,
 	PermissionHandler,
 } from "../agent/types.js"
 export { AcpAgent } from "./AcpAgent.js"
@@ -65,7 +65,7 @@ export function restoreConsole(): void {
 }
 
 export interface AcpModeOptions {
-	/** Path to Cline configuration directory */
+	/** Path to Kody configuration directory */
 	config?: string
 	/** Working directory (default: process.cwd()) */
 	cwd?: string
@@ -76,7 +76,7 @@ export interface AcpModeOptions {
 }
 
 /**
- * Run Cline in ACP mode.
+ * Run Kody in ACP mode.
  *
  * This function:
  * 1. Redirects console output to stderr (stdout reserved for JSON-RPC)

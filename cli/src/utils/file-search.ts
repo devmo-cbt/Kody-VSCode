@@ -88,7 +88,7 @@ async function listFilesWithNodeFs(workspacePath: string, limit: number): Promis
 				if (entry.isDirectory() && EXCLUDED_DIRS.has(name)) {
 					continue
 				}
-				if (name.startsWith(".") && !name.startsWith(".cline")) {
+				if (name.startsWith(".") && !name.startsWith(".kody")) {
 					continue
 				}
 
@@ -183,9 +183,9 @@ export async function listWorkspaceFiles(workspacePath: string, limit = 5000): P
 
 function countGaps(positions: Iterable<number>): number {
 	let gaps = 0
-	let prev = -Infinity
+	let prev = Number.NEGATIVE_INFINITY
 	for (const pos of positions) {
-		if (prev !== -Infinity && pos - prev > 1) {
+		if (prev !== Number.NEGATIVE_INFINITY && pos - prev > 1) {
 			gaps++
 		}
 		prev = pos

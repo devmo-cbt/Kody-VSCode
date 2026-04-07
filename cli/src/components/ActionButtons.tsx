@@ -4,7 +4,7 @@
  * Supports keyboard navigation (1/2 for buttons, arrows to navigate, esc to cancel)
  */
 
-import type { ClineMessage } from "@shared/ExtensionMessage"
+import type { KodyMessage } from "@shared/ExtensionMessage"
 import { Box, Text } from "ink"
 import React from "react"
 import { COLORS } from "../constants/colors"
@@ -194,7 +194,7 @@ const errorTypes = ["api_req_failed", "mistake_limit_reached"]
 /**
  * Get button configuration based on message type and state
  */
-export function getButtonConfig(message: ClineMessage | undefined, isStreaming: boolean = false): ButtonConfig {
+export function getButtonConfig(message: KodyMessage | undefined, isStreaming = false): ButtonConfig {
 	if (!message) {
 		return BUTTON_CONFIGS.default
 	}

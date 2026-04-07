@@ -4,9 +4,9 @@ import * as fs from "node:fs"
  * Read piped input from stdin (non-blocking)
  *
  * This function is designed to work with piped input, including chained commands:
- *   git diff | cline 'explain' | cline 'summarize'
+ *   git diff | kody 'explain' | kody 'summarize'
  *
- * The challenge is that when chaining cline commands, the first command may take
+ * The challenge is that when chaining kody commands, the first command may take
  * several seconds to complete, so we can't use a short timeout. Instead, we wait
  * for EOF which signals that the previous command has finished writing.
  */
@@ -33,7 +33,7 @@ export async function readStdinIfPiped(): Promise<string | null> {
 
 	// Use async approach - more reliable for piped input from other commands
 	// The synchronous readFileSync(0) can fail with EAGAIN when the pipe
-	// isn't ready yet (common when piping from another cline command)
+	// isn't ready yet (common when piping from another kody command)
 	return new Promise((resolve) => {
 		let data = ""
 		process.stdin.setEncoding("utf8")

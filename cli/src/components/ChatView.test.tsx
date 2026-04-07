@@ -47,7 +47,7 @@ vi.mock("../vscode-shim", () => ({
 // Mock TaskContext
 vi.mock("../context/TaskContext", () => ({
 	useTaskState: vi.fn(() => ({
-		clineMessages: [],
+		kodyMessages: [],
 		mode: "act",
 	})),
 	useTaskContext: vi.fn(() => ({

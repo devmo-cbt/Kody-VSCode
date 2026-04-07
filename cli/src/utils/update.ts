@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process"
 import { realpathSync } from "node:fs"
 import { exit } from "node:process"
-import { ClineEndpoint } from "@/config"
+import { KodyEndpoint } from "@/config"
 import { fetch } from "@/shared/net"
 import { printInfo, printWarning } from "./display"
 
@@ -52,7 +52,7 @@ function getInstallationInfo(currentVersion: string): InstallationInfo {
 		if (scriptPath.includes("/.pnpm/global") || scriptPath.includes("/pnpm/global")) {
 			return {
 				packageManager: PackageManager.PNPM,
-				updateCommand: `pnpm add -g cline@${tag}`,
+				updateCommand: `pnpm add -g kody@${tag}`,
 			}
 		}
 
@@ -60,7 +60,7 @@ function getInstallationInfo(currentVersion: string): InstallationInfo {
 		if (scriptPath.includes("/.yarn/") || scriptPath.includes("/yarn/global")) {
 			return {
 				packageManager: PackageManager.YARN,
-				updateCommand: `yarn global add cline@${tag}`,
+				updateCommand: `yarn global add kody@${tag}`,
 			}
 		}
 
@@ -68,15 +68,15 @@ function getInstallationInfo(currentVersion: string): InstallationInfo {
 		if (scriptPath.includes("/.bun/bin")) {
 			return {
 				packageManager: PackageManager.BUN,
-				updateCommand: `bun add -g cline@${tag}`,
+				updateCommand: `bun add -g kody@${tag}`,
 			}
 		}
 
-		// npm global (node_modules/cline)
-		if (scriptPath.includes("/node_modules/cline/")) {
+		// npm global (node_modules/kody)
+		if (scriptPath.includes("/node_modules/kody/")) {
 			return {
 				packageManager: PackageManager.NPM,
-				updateCommand: `npm install -g cline@${tag}`,
+				updateCommand: `npm install -g kody@${tag}`,
 			}
 		}
 	} catch {
@@ -93,7 +93,7 @@ function getInstallationInfo(currentVersion: string): InstallationInfo {
 async function getLatestVersion(currentVersion: string): Promise<string | null> {
 	try {
 		const tag = getNpmTag(currentVersion)
-		const response = await fetch(`https://registry.npmjs.org/cline/${tag}`)
+		const response = await fetch(`https://registry.npmjs.org/kody/${tag}`)
 		if (!response.ok) return null
 		const data = (await response.json()) as { version: string }
 		return data.version || null
@@ -123,7 +123,7 @@ export function autoUpdateOnStartup(currentVersion: string): void {
 	}
 
 	// Skip if using bundled enterprise config (single source of truth)
-	if (ClineEndpoint.isBundledConfig()) {
+	if (KodyEndpoint.isBundledConfig()) {
 		return
 	}
 
@@ -259,7 +259,7 @@ function parseVersion(version: string): ParsedVersion {
 		return {
 			base: nightlyMatch[1].split(".").map(Number),
 			isNightly: true,
-			timestamp: parseInt(nightlyMatch[2], 10),
+			timestamp: Number.parseInt(nightlyMatch[2], 10),
 		}
 	}
 	return {

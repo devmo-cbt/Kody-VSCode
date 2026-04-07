@@ -1,5 +1,5 @@
 /**
- * Internal types for ACP integration with Cline CLI.
+ * Internal types for ACP integration with Kody CLI.
  *
  * This file re-exports all public types from ./public-types.ts and adds
  * internal-only Types that reference core modules (Controller, etc.).
@@ -54,11 +54,11 @@ export type {
 export type {
 	AcpAgentOptions,
 	AcpSessionState,
-	ClineAgentCapabilities,
-	ClineAgentInfo,
-	ClineAgentOptions,
-	ClinePermissionOption,
-	ClineSessionEvents,
+	KodyAgentCapabilities,
+	KodyAgentInfo,
+	KodyAgentOptions,
+	KodyPermissionOption,
+	KodySessionEvents,
 	PermissionHandler,
 	SessionUpdatePayload,
 	SessionUpdateType,

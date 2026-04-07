@@ -7,7 +7,7 @@ import { addMcpServerShortcut } from "./mcp"
 const tempDirs: string[] = []
 
 async function createTempConfigDir(): Promise<string> {
-	const dir = await fs.mkdtemp(path.join(os.tmpdir(), "cline-mcp-test-"))
+	const dir = await fs.mkdtemp(path.join(os.tmpdir(), "kody-mcp-test-"))
 	tempDirs.push(dir)
 	return dir
 }
@@ -17,7 +17,7 @@ type McpSettingsFile = {
 }
 
 async function readMcpSettings(configDir: string): Promise<McpSettingsFile> {
-	const settingsPath = path.join(configDir, "data", "settings", "cline_mcp_settings.json")
+	const settingsPath = path.join(configDir, "data", "settings", "kody_mcp_settings.json")
 	return JSON.parse(await fs.readFile(settingsPath, "utf-8")) as McpSettingsFile
 }
 

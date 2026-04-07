@@ -1,8 +1,8 @@
 /**
- * Terminal display utilities for rendering Cline messages in the CLI
+ * Terminal display utilities for rendering Kody messages in the CLI
  */
 
-import type { ClineAsk, ClineMessage, ClineSay, ExtensionState } from "@shared/ExtensionMessage"
+import type { ExtensionState, KodyAsk, KodyMessage, KodySay } from "@shared/ExtensionMessage"
 import { originalConsoleError, originalConsoleLog } from "./console"
 
 // ANSI color codes for terminal output
@@ -88,7 +88,7 @@ export function formatTimestamp(ts: number): string {
 /**
  * Get a prefix icon for different message types
  */
-function getMessageIcon(message: ClineMessage): string {
+function getMessageIcon(message: KodyMessage): string {
 	if (message.type === "ask") {
 		switch (message.ask) {
 			case "followup":
@@ -112,49 +112,48 @@ function getMessageIcon(message: ClineMessage): string {
 			default:
 				return "❔"
 		}
-	} else {
-		switch (message.say) {
-			case "task":
-				return "📋"
-			case "error":
-				return "❌"
-			case "text":
-				return "💬"
-			case "reasoning":
-				return "🧠"
-			case "completion_result":
-				return "✅"
-			case "user_feedback":
-				return "👤"
-			case "command":
-			case "command_output":
-				return "⚙️ "
-			case "tool":
-				return "🔧"
-			case "browser_action":
-			case "browser_action_launch":
-			case "browser_action_result":
-				return "🌐"
-			case "mcp_server_request_started":
-			case "mcp_server_response":
-				return "🔌"
-			case "api_req_started":
-			case "api_req_finished":
-				return "🔄"
-			case "checkpoint_created":
-				return "💾"
-			case "info":
-				return "ℹ️ "
-			default:
-				return "  "
-		}
+	}
+	switch (message.say) {
+		case "task":
+			return "📋"
+		case "error":
+			return "❌"
+		case "text":
+			return "💬"
+		case "reasoning":
+			return "🧠"
+		case "completion_result":
+			return "✅"
+		case "user_feedback":
+			return "👤"
+		case "command":
+		case "command_output":
+			return "⚙️ "
+		case "tool":
+			return "🔧"
+		case "browser_action":
+		case "browser_action_launch":
+		case "browser_action_result":
+			return "🌐"
+		case "mcp_server_request_started":
+		case "mcp_server_response":
+			return "🔌"
+		case "api_req_started":
+		case "api_req_finished":
+			return "🔄"
+		case "checkpoint_created":
+			return "💾"
+		case "info":
+			return "ℹ️ "
+		default:
+			return "  "
 	}
 }
 
 /**
- * Format a ClineMessage for terminal display
+ * Format a KodyMessage for terminal display
  */
-export function formatMessage(message: ClineMessage, verbose: boolean = false): string {
+export function formatMessage(message: KodyMessage, verbose = false): string {
 	const icon = getMessageIcon(message)
 	const timestamp = formatTimestamp(message.ts)
 	const lines: string[] = []
@@ -170,8 +169,8 @@ export function formatMessage(message: ClineMessage, verbose: boolean = false): 
 	return lines.filter(Boolean).join("\n")
 }
 
-function formatAskMessage(message: ClineMessage, prefix: string, verbose: boolean): string {
-	const ask = message.ask as ClineAsk
+function formatAskMessage(message: KodyMessage, prefix: string, verbose: boolean): string {
+	const ask = message.ask as KodyAsk
 
 	switch (ask) {
 		case "followup": {
@@ -217,8 +216,8 @@ function formatAskMessage(message: ClineMessage, prefix: string, verbose: boolea
 	}
 }
 
-function formatSayMessage(message: ClineMessage, prefix: string, verbose: boolean): string {
-	const say = message.say as ClineSay
+function formatSayMessage(message: KodyMessage, prefix: string, verbose: boolean): string {
+	const say = message.say as KodySay
 
 	switch (say) {
 		case "task":
@@ -289,7 +288,7 @@ function formatSayMessage(message: ClineMessage, prefix: string, verbose: boolea
 /**
  * Display a horizontal separator
  */
-export function separator(char: string = "─", width: number = 60): string {
+export function separator(char = "─", width = 60): string {
 	return style.dim(char.repeat(width))
 }
 
@@ -309,7 +308,7 @@ export function taskHeader(taskId: string, task?: string): string {
 /**
  * Format the current state for display
  */
-export function formatState(state: ExtensionState, verbose: boolean = false): string {
+export function formatState(state: ExtensionState, verbose = false): string {
 	const lines: string[] = []
 
 	if (state.currentTaskItem) {
@@ -317,10 +316,10 @@ export function formatState(state: ExtensionState, verbose: boolean = false): st
 	}
 
 	// Show messages
-	if (state.clineMessages && state.clineMessages.length > 0) {
+	if (state.kodyMessages && state.kodyMessages.length > 0) {
 		const messagesToShow = verbose
-			? state.clineMessages
-			: state.clineMessages.filter((m) => {
+			? state.kodyMessages
+			: state.kodyMessages.filter((m) => {
 					// Filter out noisy messages in non-verbose mode
 					// if (m.say === "api_req_started" || m.say === "api_req_finished") return false
 					return true
@@ -344,7 +343,7 @@ export class Spinner {
 	private frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
 	private frameIndex = 0
 	private interval: NodeJS.Timeout | null = null
-	private message: string = ""
+	private message = ""
 
 	start(message: string) {
 		this.message = message
@@ -392,7 +391,7 @@ export function clearLine() {
 /**
  * Move cursor up n lines
  */
-export function cursorUp(n: number = 1) {
+export function cursorUp(n = 1) {
 	process.stdout.write(`\x1b[${n}A`)
 }
 

@@ -1,6 +1,6 @@
 /**
  * Welcome view component
- * Shows an interactive prompt when user starts cline without a command
+ * Shows an interactive prompt when user starts kody without a command
  * Supports file mentions with @
  */
 
@@ -29,7 +29,7 @@ interface WelcomeViewProps {
 	controller?: any
 }
 
-// ASCII art Cline logo
+// ASCII art Kody logo
 const CLINE_LOGO = [
 	"            :::::::            ",
 	"           :::::::::           ",
@@ -71,11 +71,11 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onSubmit, onExit, cont
 		const mode = stateManager.getGlobalSettingsKey("mode") as string
 		const providerKey = mode === "act" ? "actModeApiProvider" : "planModeApiProvider"
 		const currentProvider = stateManager.getGlobalSettingsKey(providerKey) as string
-		return currentProvider || "cline"
+		return currentProvider || "kody"
 	}, [controller])
 
 	// Get model ID based on current mode and provider
-	// Different providers use different state keys (e.g., cline uses actModeOpenRouterModelId)
+	// Different providers use different state keys (e.g., kody uses actModeOpenRouterModelId)
 	const modelId = useMemo(() => {
 		const stateManager = StateManager.get()
 		const modelKey = getProviderModelIdKey(provider as ApiProvider, mode)
@@ -245,7 +245,7 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onSubmit, onExit, cont
 				</Box>
 			)}
 
-			{/* Cline logo - centered */}
+			{/* Kody logo - centered */}
 			<Box alignItems="center" flexDirection="column">
 				{CLINE_LOGO.map((line, idx) => (
 					// biome-ignore lint/suspicious/noArrayIndexKey: static array that never changes

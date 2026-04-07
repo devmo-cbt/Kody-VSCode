@@ -3,8 +3,8 @@
  * Shows task history with search and keyboard navigation
  */
 
-import { StringRequest } from "@shared/proto/cline/common"
-import { GetTaskHistoryRequest } from "@shared/proto/cline/task"
+import { StringRequest } from "@shared/proto/kody/common"
+import { GetTaskHistoryRequest } from "@shared/proto/kody/task"
 import { Box, Text, useInput } from "ink"
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import type { Controller } from "@/core/controller"

@@ -22,7 +22,7 @@ vi.mock("@/core/controller/task/showTaskWithId", () => ({
 	showTaskWithId: mockShowTaskWithId,
 }))
 
-vi.mock("@/shared/proto/cline/common", () => ({
+vi.mock("@/shared/proto/kody/common", () => ({
 	StringRequest: {
 		create: (data: any) => data,
 	},
