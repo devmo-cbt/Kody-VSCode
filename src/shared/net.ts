@@ -93,6 +93,7 @@
  * ```
  */
 
+import { readFileSync } from "fs"
 import OpenAI, { ClientOptions as OpenAIClientOptions } from "openai"
 import { EnvHttpProxyAgent, setGlobalDispatcher, fetch as undiciFetch } from "undici"
 import { buildExternalBasicHeaders } from "@/services/EnvUtils"
@@ -121,6 +122,20 @@ export const fetch: typeof globalThis.fetch = (() => {
 		const agent = new EnvHttpProxyAgent({})
 		setGlobalDispatcher(agent)
 		baseFetch = undiciFetch as any as typeof globalThis.fetch
+	} else {
+		// VS Code mode: check for extra CA certs for on-premise deployments.
+		// globalThis.fetch (Node.js native) reads NODE_EXTRA_CA_CERTS only at startup,
+		// so certs added via launchctl setenv after VS Code started are missed.
+		// Undici reads the cert file at init time, fixing self-signed cert connections.
+		const certPath = process.env.NODE_EXTRA_CA_CERTS || `${process.env.HOME ?? "~"}/.kody/kody4-api.pem`
+		try {
+			const ca = readFileSync(certPath)
+			const agent = new EnvHttpProxyAgent({ connect: { ca } })
+			setGlobalDispatcher(agent)
+			baseFetch = undiciFetch as any as typeof globalThis.fetch
+		} catch {
+			// No extra cert found — use globalThis.fetch (standard behaviour)
+		}
 	}
 
 	return (input: string | URL | Request, init?: RequestInit): Promise<Response> => (mockFetch || baseFetch)(input, init)
